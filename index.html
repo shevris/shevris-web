@@ -1,18 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="system">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Shevris Technologies — Software Company</title>
   <meta name="description" content="Shevris Technologies is a software company from Lahore, Pakistan. Makers of Tijarah — Pakistan's upcoming B2B & B2C marketplace.">
   <meta name="author" content="Shevris Technologies">
-  <meta name="theme-color" content="#020d08">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://shevris.com">
   <meta property="og:title" content="Shevris Technologies — Software Company">
   <meta property="og:description" content="A software company from Lahore, Pakistan. Makers of Tijarah.">
   <meta property="og:site_name" content="Shevris Technologies">
+
+  <script>
+    // Apply saved theme before first paint to avoid a flash.
+    (function () {
+      var t = 'system';
+      try { t = localStorage.getItem('shevris-theme') || 'system'; } catch (e) {}
+      document.documentElement.dataset.theme = t;
+      if (t === 'system') {
+        document.documentElement.dataset.resolved =
+          window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      } else {
+        document.documentElement.dataset.resolved = t;
+      }
+    })();
+  </script>
 
   <style>
     :root {
@@ -21,9 +35,28 @@
       --line: #1e4d38;
       --green: #01411C;
       --emerald: #34d399;
+      --emerald-deep: #059669;
       --text: #f8fafc;
       --muted: #a7b8ad;
       --dim: #4a5d52;
+      --glow-alpha: 0.07;
+      --card-hover-shadow: 0 12px 40px rgba(52, 211, 153, 0.12);
+      color-scheme: dark;
+    }
+
+    [data-resolved="light"] {
+      --bg: #f6faf7;
+      --panel: #ffffff;
+      --line: #d3e5da;
+      --green: #01411C;
+      --emerald: #059669;
+      --emerald-deep: #047857;
+      --text: #0b1f15;
+      --muted: #456152;
+      --dim: #7a8f83;
+      --glow-alpha: 0.05;
+      --card-hover-shadow: 0 12px 40px rgba(5, 150, 105, 0.14);
+      color-scheme: light;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -40,15 +73,79 @@
       display: flex;
       flex-direction: column;
       -webkit-font-smoothing: antialiased;
+      transition: background-color 0.4s ease, color 0.4s ease;
     }
 
     .glow {
       position: fixed;
       inset: 0;
       pointer-events: none;
-      background: radial-gradient(600px 300px at 50% 0%, rgba(52, 211, 153, 0.07), transparent 70%);
+      background: radial-gradient(600px 300px at 50% 0%, rgba(52, 211, 153, var(--glow-alpha)), transparent 70%);
+      animation: breathe 9s ease-in-out infinite;
     }
 
+    @keyframes breathe {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
+
+    /* ---------- entrance ---------- */
+    .rise {
+      opacity: 0;
+      transform: translateY(18px);
+      animation: rise 0.8s cubic-bezier(0.22, 0.8, 0.3, 1) forwards;
+      animation-delay: var(--d, 0s);
+    }
+
+    @keyframes rise {
+      to { opacity: 1; transform: none; }
+    }
+
+    /* ---------- theme control ---------- */
+    .theme-bar {
+      position: fixed;
+      top: 20px;
+      right: 22px;
+      z-index: 10;
+      display: flex;
+      gap: 2px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px;
+      animation: rise 0.8s cubic-bezier(0.22, 0.8, 0.3, 1) 0.15s backwards;
+    }
+
+    .theme-bar button {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--dim);
+      width: 32px;
+      height: 30px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: color 0.2s ease, background 0.2s ease;
+    }
+
+    .theme-bar button svg { width: 15px; height: 15px; }
+
+    .theme-bar button[aria-pressed="true"] {
+      background: var(--green);
+      color: #f8fafc;
+    }
+
+    [data-resolved="light"] .theme-bar button[aria-pressed="true"] {
+      background: var(--emerald);
+      color: #ffffff;
+    }
+
+    .theme-bar button:hover { color: var(--emerald); }
+    .theme-bar button[aria-pressed="true"]:hover { color: #f8fafc; }
+
+    /* ---------- layout ---------- */
     main {
       flex: 1;
       display: flex;
@@ -78,7 +175,20 @@
       margin-bottom: 20px;
     }
 
-    h1 .accent { color: var(--emerald); }
+    h1 .accent {
+      color: var(--emerald);
+      background: linear-gradient(100deg, var(--emerald), #a7f3d0 45%, var(--emerald) 60%);
+      background-size: 220% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 7s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { background-position: 0% 0; }
+      50% { background-position: 100% 0; }
+    }
 
     .tagline {
       font-size: clamp(17px, 2.2vw, 21px);
@@ -109,12 +219,13 @@
       padding: 22px 26px;
       max-width: 440px;
       width: 100%;
-      transition: border-color 0.2s ease, transform 0.2s ease;
+      transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
     }
 
     .product-card:hover {
       border-color: var(--emerald);
-      transform: translateY(-2px);
+      transform: translateY(-3px);
+      box-shadow: var(--card-hover-shadow);
     }
 
     .product-mark {
@@ -127,8 +238,11 @@
       border-radius: 12px;
       font-weight: 700;
       font-size: 20px;
-      color: var(--text);
+      color: #f8fafc;
+      transition: transform 0.25s ease;
     }
+
+    .product-card:hover .product-mark { transform: scale(1.06) rotate(-3deg); }
 
     .product-name {
       font-size: 17px;
@@ -147,10 +261,13 @@
       margin-left: auto;
       color: var(--dim);
       font-size: 20px;
-      transition: color 0.2s ease;
+      transition: color 0.2s ease, transform 0.25s ease;
     }
 
-    .product-card:hover .product-arrow { color: var(--emerald); }
+    .product-card:hover .product-arrow {
+      color: var(--emerald);
+      transform: translate(2px, -2px);
+    }
 
     footer {
       position: relative;
@@ -160,31 +277,62 @@
       font-size: 12.5px;
       color: var(--dim);
       line-height: 1.9;
+      animation: rise 0.8s cubic-bezier(0.22, 0.8, 0.3, 1) 0.55s backwards;
     }
 
     footer a {
       color: var(--muted);
       text-decoration: none;
+      transition: color 0.2s ease;
     }
 
     footer a:hover { color: var(--emerald); }
 
     footer .sep { margin: 0 6px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      html { scroll-behavior: auto; }
+    }
   </style>
 </head>
 <body>
   <div class="glow"></div>
 
+  <div class="theme-bar" role="group" aria-label="Theme">
+    <button type="button" data-set="light" aria-pressed="false" title="Light">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4.5"/>
+        <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/>
+      </svg>
+    </button>
+    <button type="button" data-set="dark" aria-pressed="true" title="Dark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/>
+      </svg>
+    </button>
+    <button type="button" data-set="system" aria-pressed="false" title="System">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="12" rx="2"/>
+        <path d="M8 20h8M12 16v4"/>
+      </svg>
+    </button>
+  </div>
+
   <main>
-    <p class="wordmark">Shevris Technologies</p>
-    <h1>Software, built <span class="accent">deliberately.</span></h1>
-    <p class="tagline">
+    <p class="wordmark rise" style="--d: 0.05s">Shevris Technologies</p>
+    <h1 class="rise" style="--d: 0.18s">Software, built <span class="accent">deliberately.</span></h1>
+    <p class="tagline rise" style="--d: 0.3s">
       Shevris Technologies is an independent software company based in Lahore,
       Pakistan — building products for commerce.
     </p>
 
-    <p class="products-label">Products</p>
-    <a class="product-card" href="https://tijarah.pk" target="_blank" rel="noopener">
+    <p class="products-label rise" style="--d: 0.42s">Products</p>
+    <a class="product-card rise" style="--d: 0.5s" href="https://tijarah.pk" target="_blank" rel="noopener">
       <span class="product-mark">T</span>
       <span>
         <span class="product-name">Tijarah</span>
@@ -201,5 +349,38 @@
     <br>
     <span>&copy; 2026 Shevris Technologies. All rights reserved.</span>
   </footer>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var mq = window.matchMedia('(prefers-color-scheme: light)');
+      var buttons = document.querySelectorAll('.theme-bar button');
+
+      function apply(mode) {
+        root.dataset.theme = mode;
+        var resolved = mode === 'system'
+          ? (mq.matches ? 'light' : 'dark')
+          : mode;
+        root.dataset.resolved = resolved;
+        buttons.forEach(function (b) {
+          b.setAttribute('aria-pressed', String(b.dataset.set === mode));
+        });
+      }
+
+      buttons.forEach(function (b) {
+        b.addEventListener('click', function () {
+          var mode = b.dataset.set;
+          try { localStorage.setItem('shevris-theme', mode); } catch (e) {}
+          apply(mode);
+        });
+      });
+
+      mq.addEventListener('change', function () {
+        if (root.dataset.theme === 'system') apply('system');
+      });
+
+      apply(root.dataset.theme || 'system');
+    })();
+  </script>
 </body>
 </html>
