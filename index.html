@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shevris Technologies — Software Company</title>
+  <meta name="description" content="Shevris Technologies is a software company from Lahore, Pakistan. Makers of Tijarah — Pakistan's upcoming B2B & B2C marketplace.">
+  <meta name="author" content="Shevris Technologies">
+  <meta name="theme-color" content="#020d08">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://shevris.com">
+  <meta property="og:title" content="Shevris Technologies — Software Company">
+  <meta property="og:description" content="A software company from Lahore, Pakistan. Makers of Tijarah.">
+  <meta property="og:site_name" content="Shevris Technologies">
+
+  <style>
+    :root {
+      --bg: #020d08;
+      --panel: #06130d;
+      --line: #1e4d38;
+      --green: #01411C;
+      --emerald: #34d399;
+      --text: #f8fafc;
+      --muted: #a7b8ad;
+      --dim: #4a5d52;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 700px at 50% -10%, rgba(1, 65, 28, 0.55), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .glow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(600px 300px at 50% 0%, rgba(52, 211, 153, 0.07), transparent 70%);
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 96px 24px 64px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .wordmark {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.42em;
+      text-transform: uppercase;
+      color: var(--emerald);
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      font-size: clamp(38px, 6vw, 64px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.08;
+      margin-bottom: 20px;
+    }
+
+    h1 .accent { color: var(--emerald); }
+
+    .tagline {
+      font-size: clamp(17px, 2.2vw, 21px);
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 560px;
+      margin-bottom: 72px;
+    }
+
+    .products-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 20px;
+    }
+
+    .product-card {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      text-align: left;
+      text-decoration: none;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 22px 26px;
+      max-width: 440px;
+      width: 100%;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .product-card:hover {
+      border-color: var(--emerald);
+      transform: translateY(-2px);
+    }
+
+    .product-mark {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      background: var(--green);
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--text);
+    }
+
+    .product-name {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .product-desc {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .product-arrow {
+      margin-left: auto;
+      color: var(--dim);
+      font-size: 20px;
+      transition: color 0.2s ease;
+    }
+
+    .product-card:hover .product-arrow { color: var(--emerald); }
+
+    footer {
+      position: relative;
+      z-index: 1;
+      padding: 28px 24px 36px;
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--dim);
+      line-height: 1.9;
+    }
+
+    footer a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    footer a:hover { color: var(--emerald); }
+
+    footer .sep { margin: 0 6px; }
+  </style>
+</head>
+<body>
+  <div class="glow"></div>
+
+  <main>
+    <p class="wordmark">Shevris Technologies</p>
+    <h1>Software, built <span class="accent">deliberately.</span></h1>
+    <p class="tagline">
+      Shevris Technologies is an independent software company based in Lahore,
+      Pakistan — building products for commerce.
+    </p>
+
+    <p class="products-label">Products</p>
+    <a class="product-card" href="https://tijarah.pk" target="_blank" rel="noopener">
+      <span class="product-mark">T</span>
+      <span>
+        <span class="product-name">Tijarah</span>
+        <span class="product-desc">Pakistan's upcoming B2B &amp; B2C marketplace — wholesale trade, live prices, AI-powered shopping.</span>
+      </span>
+      <span class="product-arrow">&#8599;</span>
+    </a>
+  </main>
+
+  <footer>
+    <a href="mailto:hello@shevris.com">hello@shevris.com</a>
+    <span class="sep">&middot;</span>
+    <span>433 Iqbal, Ravi Block Town, Lahore 54000, Pakistan</span>
+    <br>
+    <span>&copy; 2026 Shevris Technologies. All rights reserved.</span>
+  </footer>
+</body>
+</html>
