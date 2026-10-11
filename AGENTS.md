@@ -8,6 +8,7 @@
 - Motion rules: entrance animations only, finite, no looping/pulsing. `Reveal` wraps section entrances (`whileInView`, once). `LogoMark` does the one-time clip-path reveal. Both honor `useReducedMotion()`; `data-reveal` + the `<noscript>` rule in `app/page.tsx` keep content visible without JS.
 - Production Cutline assets live in `public/`: `logo.svg` is the transparent symbol; `favicon.svg` its square badge; `og-image.svg` the editable sharing artwork. Keep their path geometry aligned with `CUTLINE_PATH` in `components/logo-mark.tsx`.
 - PNG raster sizes: `favicon-32.png` 32x32, `apple-touch-icon.png` 180x180, `logo.png` 512x512, `og-image.png` 1200x630.
+- `tijarah-mark.png` is the official Tijarah product mark (navy badge, copied from Tijarah-Landing `logo.png`). Used via `next/image` in the hero card and product spotlight — keep it in sync if the Tijarah logo changes.
 - `brand-concepts.html`, `shevris-concept-*.svg`, `shevris-cutline-lockup.svg`, `shevris-concepts-*.png` are local design studies (gitignored). Do not stage or publish them unless explicitly requested.
 
 ## Toolchain

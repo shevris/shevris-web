@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { ArrowUpRight, Check } from "lucide-react";
 import { Reveal } from "./reveal";
 import { btnPrimary, btnSecondary, container } from "./ui";
@@ -76,9 +77,13 @@ export function Hero() {
             className="border-line bg-panel hover:border-accent relative block rounded-[20px] border p-6 shadow-[0_24px_64px_rgba(0,0,0,0.22)] transition-all hover:-translate-y-1 hover:shadow-[0_28px_72px_rgba(81,67,217,0.2)] md:p-[30px]"
           >
             <div className="mb-[18px] flex items-center gap-4">
-              <span className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-[14px] bg-[#01411c] text-2xl font-extrabold text-slate-50">
-                T
-              </span>
+              <Image
+                src="/tijarah-mark.png"
+                alt="Tijarah logo"
+                width={52}
+                height={52}
+                className="h-[52px] w-[52px] shrink-0 rounded-[14px]"
+              />
               <div>
                 <span className="block text-[19px] font-bold tracking-[-0.02em]">
                   Tijarah
