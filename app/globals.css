@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #11131d;
+  --panel: #1b1d2b;
+  --elev: #22243a;
+  --line: #36384a;
+  --brand-solid: #5143d9;
+  --accent: #b4aaff;
+  --text: #f5f4fa;
+  --muted: #b4b6c6;
+  --dim: #a0a3b5;
+  --glow-alpha: 0.07;
+  --nav-bg: rgba(17, 19, 29, 0.75);
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg: #f4f3ef;
+  --panel: #ffffff;
+  --elev: #ffffff;
+  --line: #dcdce3;
+  --brand-solid: #5143d9;
+  --accent: #5143d9;
+  --text: #161925;
+  --muted: #555866;
+  --dim: #626572;
+  --glow-alpha: 0.035;
+  --nav-bg: rgba(244, 243, 239, 0.75);
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-canvas: var(--bg);
+  --color-panel: var(--panel);
+  --color-elev: var(--elev);
+  --color-line: var(--line);
+  --color-brand: var(--brand-solid);
+  --color-accent: var(--accent);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-dim: var(--dim);
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+body {
+  background:
+    radial-gradient(1200px 700px at 50% -10%, rgba(81, 67, 217, 0.1), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 84px;
+}
+
+::selection {
+  background: rgba(81, 67, 217, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
