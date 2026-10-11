@@ -122,7 +122,7 @@ html {
   pointer-events: none;
 }
 
-.spotlight-card > * {
+.spotlight-card > *:not(.absolute, .fixed, .sticky) {
   position: relative;
   z-index: 1;
 }
