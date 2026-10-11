@@ -59,10 +59,9 @@ export function SiteHeader() {
         }
 
         if (delta === 0) return;
-        if (Math.sign(delta) !== Math.sign(accDelta.current)) {
+        if (Math.sign(delta) !== Math.sign(accDelta.current))
           accDelta.current = 0;
-          cancelHide();
-        }
+        if (delta < 0) cancelHide();
         accDelta.current += delta;
         if (y <= 80) {
           setHidden(false);
