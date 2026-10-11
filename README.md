@@ -5,10 +5,10 @@ hosted on GitHub Pages from this repository.
 
 ## DNS (Hostinger — `shevris.com`)
 
-| Name  | Type  | Value                                          |
-| ----- | ----- | ---------------------------------------------- |
+| Name  | Type  | Value                                                         |
+| ----- | ----- | ------------------------------------------------------------- |
 | `@`   | A     | `185.199.108.153`–`185.199.111.153` (4 records, GitHub Pages) |
-| `www` | CNAME | `shevris.github.io`                             |
+| `www` | CNAME | `shevris.github.io`                                           |
 
 `shevris.net` → Hostinger hPanel URL redirect → `https://shevris.com`.
 

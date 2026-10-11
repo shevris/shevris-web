@@ -18,18 +18,18 @@ export function Hero() {
       >
         <div>
           <Reveal>
-            <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-line bg-panel px-3.5 py-[7px] text-xs font-semibold uppercase tracking-[0.08em] text-muted">
-              <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-brand" />
+            <p className="border-line bg-panel text-muted mb-6 inline-flex items-center gap-2 rounded-full border px-3.5 py-[7px] text-xs font-semibold tracking-[0.08em] uppercase">
+              <span className="bg-brand h-[7px] w-[7px] shrink-0 rounded-full" />
               Independent software company
             </p>
           </Reveal>
           <Reveal delay={0.1}>
-            <h1 className="mb-[22px] text-[40px] font-extrabold leading-[1.06] tracking-[-0.035em] md:text-6xl">
+            <h1 className="mb-[22px] text-[40px] leading-[1.06] font-extrabold tracking-[-0.035em] md:text-6xl">
               Software, built <span className="text-accent">deliberately.</span>
             </h1>
           </Reveal>
           <Reveal delay={0.2}>
-            <p className="mb-8 max-w-[520px] text-[16.5px] leading-relaxed text-muted md:text-lg">
+            <p className="text-muted mb-8 max-w-[520px] text-[16.5px] leading-relaxed md:text-lg">
               Shevris Technologies designs and engineers software for commerce —
               custom platforms for clients, and Tijarah, our own marketplace for
               Pakistan.
@@ -52,10 +52,14 @@ export function Hero() {
             </div>
           </Reveal>
           <Reveal delay={0.4}>
-            <ul className="flex flex-wrap gap-x-[22px] gap-y-2.5 text-[13.5px] text-dim">
+            <ul className="text-dim flex flex-wrap gap-x-[22px] gap-y-2.5 text-[13.5px]">
               {POINTS.map((point) => (
                 <li key={point} className="flex items-center gap-[7px]">
-                  <Check size={14} strokeWidth={2.4} className="shrink-0 text-accent" />
+                  <Check
+                    size={14}
+                    strokeWidth={2.4}
+                    className="text-accent shrink-0"
+                  />
                   {point}
                 </li>
               ))}
@@ -69,7 +73,7 @@ export function Hero() {
             href="https://tijarah.pk"
             target="_blank"
             rel="noopener"
-            className="relative block rounded-[20px] border border-line bg-panel p-6 shadow-[0_24px_64px_rgba(0,0,0,0.22)] transition-all hover:-translate-y-1 hover:border-accent hover:shadow-[0_28px_72px_rgba(81,67,217,0.2)] md:p-[30px]"
+            className="border-line bg-panel hover:border-accent relative block rounded-[20px] border p-6 shadow-[0_24px_64px_rgba(0,0,0,0.22)] transition-all hover:-translate-y-1 hover:shadow-[0_28px_72px_rgba(81,67,217,0.2)] md:p-[30px]"
           >
             <div className="mb-[18px] flex items-center gap-4">
               <span className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-[14px] bg-[#01411c] text-2xl font-extrabold text-slate-50">
@@ -79,12 +83,12 @@ export function Hero() {
                 <span className="block text-[19px] font-bold tracking-[-0.02em]">
                   Tijarah
                 </span>
-                <span className="mt-[3px] block text-xs font-semibold uppercase tracking-[0.06em] text-muted">
+                <span className="text-muted mt-[3px] block text-xs font-semibold tracking-[0.06em] uppercase">
                   Flagship product
                 </span>
               </div>
             </div>
-            <p className="mb-5 text-[14.5px] leading-relaxed text-muted">
+            <p className="text-muted mb-5 text-[14.5px] leading-relaxed">
               Pakistan&apos;s upcoming B2B &amp; B2C marketplace — wholesale
               trade, live market prices, and AI-powered shopping.
             </p>
@@ -92,18 +96,21 @@ export function Hero() {
               {CHIPS.map((chip) => (
                 <span
                   key={chip}
-                  className="rounded-full border border-line bg-canvas px-3 py-[5px] text-xs font-medium text-muted"
+                  className="border-line bg-canvas text-muted rounded-full border px-3 py-[5px] text-xs font-medium"
                 >
                   {chip}
                 </span>
               ))}
-              <span className="rounded-full border border-[#4ade804d] bg-canvas px-3 py-[5px] text-xs font-medium text-[#4ade80]">
+              <span className="bg-canvas rounded-full border border-[#4ade804d] px-3 py-[5px] text-xs font-medium text-[#4ade80]">
                 Waitlist open
               </span>
             </div>
-            <span className="inline-flex items-center gap-[7px] text-sm font-semibold text-accent">
+            <span className="text-accent inline-flex items-center gap-[7px] text-sm font-semibold">
               tijarah.pk
-              <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+              <ArrowUpRight
+                size={14}
+                className="transition-transform group-hover:translate-x-0.5"
+              />
             </span>
           </a>
         </Reveal>

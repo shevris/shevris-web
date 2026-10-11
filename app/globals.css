@@ -40,16 +40,24 @@
   --color-ink: var(--text);
   --color-muted: var(--muted);
   --color-dim: var(--dim);
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-sans:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial,
+    sans-serif;
 }
 
 body {
   background:
-    radial-gradient(1200px 700px at 50% -10%, rgba(81, 67, 217, 0.1), transparent 60%),
+    radial-gradient(
+      1200px 700px at 50% -10%,
+      rgba(81, 67, 217, 0.1),
+      transparent 60%
+    ),
     var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
-  transition: background-color 0.4s ease, color 0.4s ease;
+  transition:
+    background-color 0.4s ease,
+    color 0.4s ease;
 }
 
 html {

@@ -36,14 +36,14 @@ export function Principles() {
         <div className="grid gap-4 md:grid-cols-3">
           {PRINCIPLES.map(({ num, title, desc }, i) => (
             <Reveal key={num} delay={i * 0.08}>
-              <div className="border-t-2 border-line px-1 py-7 transition-colors hover:border-accent md:px-2">
-                <span className="mb-3.5 block text-[13px] font-bold tracking-[0.12em] text-accent">
+              <div className="border-line hover:border-accent border-t-2 px-1 py-7 transition-colors md:px-2">
+                <span className="text-accent mb-3.5 block text-[13px] font-bold tracking-[0.12em]">
                   {num}
                 </span>
                 <h3 className="mb-2.5 text-[17px] font-semibold tracking-[-0.01em]">
                   {title}
                 </h3>
-                <p className="text-sm leading-relaxed text-muted">{desc}</p>
+                <p className="text-muted text-sm leading-relaxed">{desc}</p>
               </div>
             </Reveal>
           ))}

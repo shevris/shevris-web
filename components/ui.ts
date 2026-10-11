@@ -6,7 +6,8 @@ export const btnPrimary =
 export const btnSecondary =
   "inline-flex items-center gap-2 rounded-[10px] border border-line bg-panel px-[22px] py-3 text-[14.5px] font-semibold text-ink transition-all hover:-translate-y-0.5 hover:border-accent";
 
-export const sectionWrap = "relative z-[1] border-t border-line py-16 md:py-[88px]";
+export const sectionWrap =
+  "relative z-[1] border-t border-line py-16 md:py-[88px]";
 
 export const sectionLabel =
   "mb-3.5 block text-xs font-bold uppercase tracking-[0.24em] text-accent";

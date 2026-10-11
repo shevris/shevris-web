@@ -25,10 +25,8 @@ export function LogoMark({
       aria-hidden="true"
       focusable="false"
       data-reveal
-      className="block shrink-0 text-accent"
-      initial={
-        animate && !reduce ? { clipPath: hidden } : { clipPath: shown }
-      }
+      className="text-accent block shrink-0"
+      initial={animate && !reduce ? { clipPath: hidden } : { clipPath: shown }}
       animate={{ clipPath: shown }}
       transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 0.8, 0.3, 1] }}
     >
@@ -39,9 +37,9 @@ export function LogoMark({
 
 export function Wordmark() {
   return (
-    <span className="text-[19px] font-bold tracking-[-0.045em] leading-none text-ink">
+    <span className="text-ink text-[19px] leading-none font-bold tracking-[-0.045em]">
       shevris
-      <span className="block mt-[3px] ml-px text-[8px] font-semibold tracking-[0.25em] uppercase text-muted">
+      <span className="text-muted mt-[3px] ml-px block text-[8px] font-semibold tracking-[0.25em] uppercase">
         Technologies
       </span>
     </span>

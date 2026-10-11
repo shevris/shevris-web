@@ -9,3 +9,14 @@
 - Production Cutline assets live in `public/`: `logo.svg` is the transparent symbol; `favicon.svg` its square badge; `og-image.svg` the editable sharing artwork. Keep their path geometry aligned with `CUTLINE_PATH` in `components/logo-mark.tsx`.
 - PNG raster sizes: `favicon-32.png` 32x32, `apple-touch-icon.png` 180x180, `logo.png` 512x512, `og-image.png` 1200x630.
 - `brand-concepts.html`, `shevris-concept-*.svg`, `shevris-cutline-lockup.svg`, `shevris-concepts-*.png` are local design studies (gitignored). Do not stage or publish them unless explicitly requested.
+
+## Toolchain
+
+- ESLint 9 flat config (`eslint.config.mjs`): `eslint-config-next/core-web-vitals` + `/typescript` + `eslint-config-prettier`. Stay on ESLint 9 — `eslint-config-next`'s transitive plugins cap there. `next lint` does not exist in Next 16; use `npm run lint`.
+- Prettier (`prettier.config.mjs`) with `prettier-plugin-tailwindcss` — it reorders `className` strings on format; that churn is expected.
+- Husky v9 hooks: `.husky/pre-commit` → `lint-staged` (eslint --fix + prettier on staged files), `.husky/commit-msg` → `commitlint` (Conventional Commits). `prepare: "husky"` installs hooks on `npm install`.
+- Commit style is enforced: `feat|fix|chore|docs|refactor|test|ci|build|perf|style|revert`. Squash-merge PR titles must also be conventional (`semantic-pr.yml` checks them).
+- `.editorconfig` + `.gitattributes` (`eol=lf`) keep line endings stable on Windows. `.nvmrc`/`engines` pin Node 20+; CI uses 22.
+- Dependabot targets `development` weekly with 7-day cooldown (14 days for majors), grouped into `next-stack` and `toolchain`.
+- **Accepted risk**: `braces`/`micromatch`/`fast-glob` inside `eslint-config-next` are flagged by GHSA-vfj7-8cjw-p6xm (`braces <=3.0.3`, dev-only DoS via crafted globs). No patched release exists yet; `overrides` in `package.json` pin `^` ranges so the fix auto-lands. Re-check on the next `npm audit`.
+- `unrs-resolver`'s postinstall stays blocked (npm default-deny); ESLint works without it. Only approve it in `allowScripts` if lint ever fails for a missing native binary.

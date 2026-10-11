@@ -56,7 +56,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans min-h-screen flex flex-col`}>
+      <body
+        className={`${inter.variable} flex min-h-screen flex-col font-sans`}
+      >
         <ThemeProvider
           attribute="data-theme"
           defaultTheme="system"

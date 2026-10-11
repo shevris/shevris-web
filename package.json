@@ -2,11 +2,27 @@
   "name": "shevris-web",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "typecheck": "tsc --noEmit",
-    "test": "node --test --test-reporter=tap verify-site.test.cjs"
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "node --test --test-reporter=tap verify-site.test.cjs",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "framer-motion": "14.1.0",
@@ -16,11 +32,25 @@
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
+  "overrides": {
+    "braces": "^3.0.3",
+    "micromatch": "^4.0.8",
+    "fast-glob": "^3.3.3"
+  },
   "devDependencies": {
+    "@commitlint/cli": "21.2.3",
+    "@commitlint/config-conventional": "21.2.3",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "16.4.0",
+    "eslint-config-prettier": "10.1.8",
+    "husky": "9.1.7",
+    "lint-staged": "17.6.0",
+    "prettier": "3.9.10",
+    "prettier-plugin-tailwindcss": "0.8.1",
     "tailwindcss": "4.3.3",
     "typescript": "^5.9.0"
   }
