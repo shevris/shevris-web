@@ -166,6 +166,46 @@ html {
   outline-offset: 2px;
 }
 
+/* ---------- ambient orbs ---------- */
+.orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  pointer-events: none;
+  will-change: transform;
+}
+
+@keyframes orb-drift-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(46px, -34px) scale(1.08);
+  }
+  66% {
+    transform: translate(-34px, 26px) scale(0.94);
+  }
+}
+
+@keyframes orb-drift-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-56px, 42px) scale(1.12);
+  }
+}
+
+.orb-a {
+  animation: orb-drift-a 16s ease-in-out infinite;
+}
+
+.orb-b {
+  animation: orb-drift-b 20s ease-in-out infinite;
+}
+
 /* ---------- grain texture ---------- */
 .grain {
   position: fixed;
@@ -183,5 +223,9 @@ html {
   .hdr {
     transition: none;
     transition-delay: 0s;
+  }
+  .orb-a,
+  .orb-b {
+    animation: none;
   }
 }
