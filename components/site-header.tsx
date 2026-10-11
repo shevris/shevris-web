@@ -19,18 +19,68 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("");
   const lastY = useRef(0);
+  const accDelta = useRef(0);
+  const suppressHide = useRef(false);
+  const suppressDeadline = useRef(0);
+  const settleTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
+    let raf = 0;
     const onScroll = () => {
-      const y = window.scrollY;
-      setScrolled(y > 8);
-      setHidden(y > lastY.current && y > 120);
-      lastY.current = y;
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const y = window.scrollY;
+        const delta = y - lastY.current;
+        lastY.current = y;
+        setScrolled(y > 8);
+
+        if (suppressHide.current) {
+          accDelta.current = 0;
+          if (Date.now() >= suppressDeadline.current) {
+            suppressHide.current = false;
+          } else {
+            clearTimeout(settleTimer.current);
+            settleTimer.current = setTimeout(
+              () => (suppressHide.current = false),
+              180,
+            );
+          }
+          return;
+        }
+
+        if (delta === 0) return;
+        if (Math.sign(delta) !== Math.sign(accDelta.current))
+          accDelta.current = 0;
+        accDelta.current += delta;
+        if (y <= 80) setHidden(false);
+        else if (accDelta.current > 10) {
+          setHidden(true);
+          accDelta.current = 0;
+        } else if (accDelta.current < -6) {
+          setHidden(false);
+          accDelta.current = 0;
+        }
+      });
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(settleTimer.current);
+      window.removeEventListener("scroll", onScroll);
+    };
   }, []);
+
+  const onNavClick = () => {
+    setOpen(false);
+    setHidden(false);
+    suppressHide.current = true;
+    suppressDeadline.current = Date.now() + 1600;
+    accDelta.current = 0;
+    clearTimeout(settleTimer.current);
+    settleTimer.current = setTimeout(() => (suppressHide.current = false), 180);
+  };
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -76,7 +126,7 @@ export function SiteHeader() {
               <a
                 key={item.href}
                 href={item.href}
-                onClick={() => setOpen(false)}
+                onClick={onNavClick}
                 aria-current={isActive ? "true" : undefined}
                 className={`hover:bg-panel hover:text-ink md:hover:bg-panel relative rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   isActive ? "text-ink" : "text-muted"
