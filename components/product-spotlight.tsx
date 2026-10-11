@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
+import { SpotlightCard } from "./spotlight-card";
 import { Reveal } from "./reveal";
 import {
   btnPrimary,
@@ -15,7 +16,7 @@ export function ProductSpotlight() {
     <section id="product" className={sectionWrap}>
       <div className={container}>
         <Reveal>
-          <div className="border-line bg-panel relative grid items-center gap-9 overflow-hidden rounded-3xl border p-8 md:p-[52px] lg:grid-cols-2 lg:gap-12">
+          <SpotlightCard className="border-line bg-panel relative grid items-center gap-9 rounded-3xl border p-8 md:p-[52px] lg:grid-cols-2 lg:gap-12">
             <div className="pointer-events-none absolute -top-20 -right-20 h-80 w-80 bg-[radial-gradient(closest-side,rgba(81,67,217,0.14),transparent)]" />
             <div>
               <span className={sectionLabel}>Our product</span>
@@ -51,7 +52,7 @@ export function ProductSpotlight() {
                 Waitlist open
               </span>
             </div>
-          </div>
+          </SpotlightCard>
         </Reveal>
       </div>
     </section>

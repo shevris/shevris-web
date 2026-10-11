@@ -15,6 +15,7 @@ export default function Home() {
       >
         Skip to content
       </a>
+      <div className="grain" aria-hidden="true" />
       <div
         className="pointer-events-none fixed inset-0 opacity-65"
         style={{
@@ -31,7 +32,7 @@ export default function Home() {
       </main>
       <SiteFooter />
       <noscript>
-        <style>{`[data-reveal]{opacity:1 !important;transform:none !important;clip-path:none !important}`}</style>
+        <style>{`[data-reveal]{opacity:1 !important;transform:none !important;clip-path:none !important;filter:none !important}`}</style>
       </noscript>
     </>
   );
