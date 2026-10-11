@@ -135,6 +135,21 @@ export function ParticleField() {
       mouse.x = -9999;
       mouse.y = -9999;
     };
+    let parkTimer: ReturnType<typeof setTimeout>;
+    const onTouch = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!t) return;
+      clearTimeout(parkTimer);
+      mouse.x = t.clientX;
+      mouse.y = t.clientY;
+    };
+    const onTouchEnd = () => {
+      clearTimeout(parkTimer);
+      parkTimer = setTimeout(() => {
+        mouse.x = -9999;
+        mouse.y = -9999;
+      }, 400);
+    };
     let resizeTimer: ReturnType<typeof setTimeout>;
     const onResize = () => {
       clearTimeout(resizeTimer);
@@ -145,14 +160,23 @@ export function ParticleField() {
     start();
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerdown", onMove, { passive: true });
+    window.addEventListener("touchmove", onTouch, { passive: true });
+    window.addEventListener("touchend", onTouchEnd);
+    window.addEventListener("touchcancel", onTouchEnd);
     document.documentElement.addEventListener("pointerleave", onLeave);
     window.addEventListener("resize", onResize);
 
     return () => {
       stop();
       clearTimeout(resizeTimer);
+      clearTimeout(parkTimer);
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onMove);
+      window.removeEventListener("touchmove", onTouch);
+      window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("touchcancel", onTouchEnd);
       document.documentElement.removeEventListener("pointerleave", onLeave);
       window.removeEventListener("resize", onResize);
     };
