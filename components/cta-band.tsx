@@ -7,9 +7,9 @@ export function CtaBand() {
     <section id="contact" className={sectionWrap}>
       <div className={container}>
         <Reveal>
-          <div className="rounded-3xl border border-line bg-[radial-gradient(600px_240px_at_50%_0%,rgba(81,67,217,0.16),transparent_70%),var(--panel)] px-6 py-14 text-center md:py-[72px]">
+          <div className="border-line rounded-3xl border bg-[radial-gradient(600px_240px_at_50%_0%,rgba(81,67,217,0.16),transparent_70%),var(--panel)] px-6 py-14 text-center md:py-[72px]">
             <h2 className={h2}>Have something to build?</h2>
-            <p className="mx-auto mb-8 max-w-[480px] text-[16.5px] leading-relaxed text-muted">
+            <p className="text-muted mx-auto mb-8 max-w-[480px] text-[16.5px] leading-relaxed">
               Tell us about the product, platform, or problem — we answer every
               serious inquiry.
             </p>

@@ -1,0 +1,37 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    target-branch: development
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+    groups:
+      next-stack:
+        patterns:
+          - next
+          - eslint-config-next
+          - react
+          - react-dom
+          - "@types/react"
+          - "@types/react-dom"
+      toolchain:
+        patterns:
+          - eslint*
+          - prettier*
+          - typescript
+          - tailwindcss
+          - "@tailwindcss/*"
+          - husky
+          - lint-staged
+          - "@commitlint/*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: development
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
