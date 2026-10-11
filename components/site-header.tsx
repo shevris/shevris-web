@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { LogoMark, Wordmark } from "./logo-mark";
@@ -15,20 +15,44 @@ const NAV = [
 
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const [open, setOpen] = useState(false);
+  const [active, setActive] = useState("");
+  const lastY = useRef(0);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 8);
+      setHidden(y > lastY.current && y > 120);
+      lastY.current = y;
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) setActive(e.target.id);
+        });
+      },
+      { rootMargin: "-35% 0px -60% 0px" },
+    );
+    NAV.forEach((n) => {
+      const el = document.getElementById(n.href.slice(1));
+      if (el) obs.observe(el);
+    });
+    return () => obs.disconnect();
+  }, []);
+
   return (
     <header
-      className={`sticky top-0 z-20 border-b backdrop-blur-xl transition-colors ${
-        scrolled ? "border-line" : "border-transparent"
-      }`}
+      className={`sticky top-0 z-20 border-b backdrop-blur-xl transition-[transform,border-color,background-color] duration-300 ${
+        hidden && !open ? "-translate-y-full" : "translate-y-0"
+      } ${scrolled ? "border-line" : "border-transparent"}`}
       style={{ backgroundColor: "var(--nav-bg)" }}
     >
       <div className="relative mx-auto flex h-[68px] w-full max-w-[1120px] items-center gap-6 px-6">
@@ -46,23 +70,34 @@ export function SiteHeader() {
           aria-label="Primary"
           className={`ml-auto ${open ? "" : "hidden"} border-line bg-panel absolute inset-x-0 top-[68px] flex-col items-stretch gap-0.5 rounded-2xl border p-2.5 shadow-2xl md:static md:flex md:flex-row md:items-center md:gap-1 md:border-0 md:bg-transparent md:p-0 md:shadow-none`}
         >
-          {NAV.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              onClick={() => setOpen(false)}
-              className="text-muted hover:bg-panel hover:text-ink md:hover:bg-panel rounded-lg px-3 py-2 text-sm font-medium transition-colors"
-            >
-              {item.label}
-            </a>
-          ))}
+          {NAV.map((item) => {
+            const isActive = active === item.href.slice(1);
+            return (
+              <a
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                aria-current={isActive ? "true" : undefined}
+                className={`hover:bg-panel hover:text-ink md:hover:bg-panel relative rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  isActive ? "text-ink" : "text-muted"
+                }`}
+              >
+                {item.label}
+                <span
+                  className={`bg-accent absolute inset-x-3 -bottom-px hidden h-px transition-opacity md:block ${
+                    isActive ? "opacity-100" : "opacity-0"
+                  }`}
+                />
+              </a>
+            );
+          })}
         </nav>
 
         <div className="ml-auto flex items-center gap-3 md:ml-0">
           <ThemeToggle />
           <a
             href="mailto:hello@shevris.com"
-            className="bg-brand hidden rounded-[10px] px-4 py-2.5 text-[13.5px] font-semibold text-white shadow-[0_8px_24px_rgba(81,67,217,0.28)] transition-transform hover:-translate-y-0.5 md:inline-flex"
+            className="bg-brand hidden rounded-[10px] px-4 py-2.5 text-[13.5px] font-semibold text-white shadow-[0_8px_24px_rgba(81,67,217,0.28)] transition-all hover:-translate-y-0.5 active:scale-[0.97] md:inline-flex"
           >
             Start a project
           </a>
