@@ -42,6 +42,7 @@ export function ParticleField() {
     }[] = [];
     const mouse = { x: -9999, y: -9999 };
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
 
     const seed = () => {
       const count = Math.min(90, Math.max(30, Math.floor((w * h) / 24000)));
@@ -68,12 +69,17 @@ export function ParticleField() {
       seed();
     };
 
-    const tick = () => {
+    let lastTick = performance.now();
+    const tick = (t: number) => {
+      raf = requestAnimationFrame(tick);
+      if (coarse && t - lastTick < 33) return;
+      const k = Math.min((t - lastTick) / 16.67, 3);
+      lastTick = t;
       ctx.clearRect(0, 0, w, h);
       const pal = palette.current;
       for (const n of nodes) {
-        n.x += n.vx;
-        n.y += n.vy;
+        n.x += n.vx * k;
+        n.y += n.vy * k;
         if (n.x < 0 || n.x > w) n.vx *= -1;
         if (n.y < 0 || n.y > h) n.vy *= -1;
         const dx = n.x - mouse.x;
@@ -82,8 +88,8 @@ export function ParticleField() {
         if (d2 < REPEL_RADIUS * REPEL_RADIUS && d2 > 0.01) {
           const d = Math.sqrt(d2);
           const f = ((REPEL_RADIUS - d) / REPEL_RADIUS) * 1.1;
-          n.x += (dx / d) * f;
-          n.y += (dy / d) * f;
+          n.x += (dx / d) * f * k;
+          n.y += (dy / d) * f * k;
         }
         ctx.fillStyle = `rgba(${n.c === "a" ? pal.accent : pal.dot},${n.a})`;
         ctx.beginPath();
@@ -116,7 +122,6 @@ export function ParticleField() {
           ctx.stroke();
         }
       }
-      raf = requestAnimationFrame(tick);
     };
 
     const start = () => {
