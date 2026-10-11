@@ -43,6 +43,8 @@ export function ParticleField() {
     const mouse = { x: -9999, y: -9999 };
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const coarse = window.matchMedia("(pointer: coarse)").matches;
+    const cursorLink = coarse ? LINK * 2.2 : CURSOR_LINK;
+    const repelRadius = coarse ? REPEL_RADIUS * 0.6 : REPEL_RADIUS;
 
     const seed = () => {
       const count = Math.min(90, Math.max(30, Math.floor((w * h) / 24000)));
@@ -85,9 +87,10 @@ export function ParticleField() {
         const dx = n.x - mouse.x;
         const dy = n.y - mouse.y;
         const d2 = dx * dx + dy * dy;
-        if (d2 < REPEL_RADIUS * REPEL_RADIUS && d2 > 0.01) {
+        const rr = repelRadius * repelRadius;
+        if (d2 < rr && d2 > 0.01) {
           const d = Math.sqrt(d2);
-          const f = ((REPEL_RADIUS - d) / REPEL_RADIUS) * 1.1;
+          const f = ((repelRadius - d) / repelRadius) * 1.1;
           n.x += (dx / d) * f * k;
           n.y += (dy / d) * f * k;
         }
@@ -113,8 +116,8 @@ export function ParticleField() {
         const mdx = nodes[i].x - mouse.x;
         const mdy = nodes[i].y - mouse.y;
         const md = Math.hypot(mdx, mdy);
-        if (md < CURSOR_LINK) {
-          ctx.strokeStyle = `rgba(${pal.accent},${(1 - md / CURSOR_LINK) * 0.22})`;
+        if (md < cursorLink) {
+          ctx.strokeStyle = `rgba(${pal.accent},${(1 - md / cursorLink) * 0.22})`;
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(nodes[i].x, nodes[i].y);
@@ -150,10 +153,13 @@ export function ParticleField() {
     };
     const onTouchEnd = () => {
       clearTimeout(parkTimer);
-      parkTimer = setTimeout(() => {
-        mouse.x = -9999;
-        mouse.y = -9999;
-      }, 400);
+      parkTimer = setTimeout(
+        () => {
+          mouse.x = -9999;
+          mouse.y = -9999;
+        },
+        coarse ? 800 : 400,
+      );
     };
     let resizeTimer: ReturnType<typeof setTimeout>;
     const onResize = () => {
