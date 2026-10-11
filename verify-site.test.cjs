@@ -2,24 +2,38 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const vm = require('node:vm');
 
 const read = (name) => fs.readFileSync(path.join(__dirname, name), 'utf8');
-const html = read('index.html');
+const layout = read('app/layout.tsx');
+const sources = fs
+  .readdirSync(path.join(__dirname, 'components'))
+  .filter((f) => f.endsWith('.tsx') || f.endsWith('.ts'))
+  .map((f) => read(path.join('components', f)))
+  .concat([layout, read('app/page.tsx'), read('app/globals.css')])
+  .join('\n');
 
-test('homepage references existing local assets and production sharing image', () => {
-  for (const match of html.matchAll(/(?:src|href)="(\/[^"]+)"/g)) {
-    assert.ok(fs.existsSync(path.join(__dirname, match[1].slice(1))), match[1]);
+test('layout references existing public assets and production metadata', () => {
+  for (const match of layout.matchAll(/["'`](\/[^"'`\s]+)["'`]/g)) {
+    const rel = match[1];
+    if (rel === '/') continue;
+    assert.ok(
+      fs.existsSync(path.join(__dirname, 'public', rel.slice(1))),
+      `missing public asset: ${rel}`
+    );
   }
-  assert.match(html, /property="og:image" content="https:\/\/shevris.com\/og-image.png"/);
-  assert.match(html, /rel="canonical" href="https:\/\/shevris.com\/"/);
-  assert.doesNotMatch(html, /brand-concepts|shevris-concept-/);
+  assert.match(layout, /https:\/\/shevris\.com\/og-image\.png/);
+  assert.match(layout, /canonical:\s*"\/"/);
+  assert.doesNotMatch(sources, /brand-concepts|shevris-concept-/);
 });
 
 test('all Cutline symbols use the same vector geometry', () => {
-  const geometry = read('logo.svg').match(/<path[^>]+ d="([^"]+)"/)[1];
-  for (const source of [html, read('favicon.svg'), read('og-image.svg')]) {
-    assert.ok(source.includes(`d="${geometry}"`));
+  const geometry = read('public/logo.svg').match(/<path[^>]+ d="([^"]+)"/)[1];
+  for (const source of [
+    read('public/favicon.svg'),
+    read('public/og-image.svg'),
+    read('components/logo-mark.tsx'),
+  ]) {
+    assert.ok(source.includes(geometry), 'Cutline geometry mismatch');
   }
 });
 
@@ -30,27 +44,30 @@ test('generated PNGs have the intended dimensions', () => {
     ['logo.png', 512, 512],
     ['og-image.png', 1200, 630],
   ]) {
-    const data = fs.readFileSync(path.join(__dirname, name));
+    const data = fs.readFileSync(path.join(__dirname, 'public', name));
     assert.equal(data.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', name);
     assert.equal(data.readUInt32BE(16), width, name);
     assert.equal(data.readUInt32BE(20), height, name);
   }
 });
 
-test('logo reveal is finite and reduced motion shows static content', () => {
-  assert.match(html, /animation: cutline-reveal 800ms/);
-  assert.doesNotMatch(html, /animation[^;]*\binfinite\b/);
-  const reduced = html.slice(html.indexOf('@media (prefers-reduced-motion: reduce)'));
-  assert.match(reduced, /\.brand-symbol\s*\{\s*animation: none !important; clip-path: none;/);
-  assert.match(reduced, /\.rise, \.theme-bar, footer\s*\{\s*animation: none !important; opacity: 1; transform: none;/);
+test('animations are finite and reduced motion is respected', () => {
+  assert.doesNotMatch(sources, /\binfinite\b|repeat:\s*Infinity/);
+  assert.match(read('components/logo-mark.tsx'), /useReducedMotion/);
+  assert.match(read('components/reveal.tsx'), /useReducedMotion/);
+  assert.match(read('app/globals.css'), /prefers-reduced-motion:\s*reduce/);
+  assert.match(read('app/page.tsx'), /data-reveal/);
 });
 
-test('JavaScript parses and no undefined CSS tokens remain', () => {
-  for (const match of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) {
-    new vm.Script(match[1]);
+test('required files and deployment config exist', () => {
+  for (const f of [
+    'public/CNAME',
+    'next.config.ts',
+    'app/layout.tsx',
+    'app/page.tsx',
+    '.github/workflows/deploy.yml',
+  ]) {
+    assert.ok(fs.existsSync(path.join(__dirname, f)), `missing ${f}`);
   }
-  const defined = new Set([...html.matchAll(/(--[\w-]+)\s*:/g)].map((match) => match[1]));
-  for (const match of html.matchAll(/var\((--[\w-]+)[,)]/g)) {
-    assert.ok(defined.has(match[1]), match[1]);
-  }
+  assert.match(read('next.config.ts'), /output:\s*"export"/);
 });
