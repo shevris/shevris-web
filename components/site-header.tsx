@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Headroom from "headroom.js";
 import { Menu, X } from "lucide-react";
 import { LogoMark, Wordmark } from "./logo-mark";
 import { ThemeToggle } from "./theme-toggle";
@@ -13,95 +14,77 @@ const NAV = [
   { href: "#contact", label: "Contact" },
 ];
 
-const HIDE_DELAY_MS = 400;
+const NAV_SETTLE_MS = 180;
+const NAV_FREEZE_MAX_MS = 1600;
 
 export function SiteHeader() {
-  const [scrolled, setScrolled] = useState(false);
-  const [hidden, setHidden] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("");
-  const lastY = useRef(0);
-  const accDelta = useRef(0);
-  const suppressHide = useRef(false);
-  const suppressDeadline = useRef(0);
+  const headerRef = useRef<HTMLElement>(null);
+  const headroom = useRef<Headroom | null>(null);
+  const navFrozen = useRef(false);
   const settleTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const hideTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const deadlineTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const cancelHide = () => {
-    clearTimeout(hideTimer.current);
-    hideTimer.current = undefined;
+  const endNavFreeze = () => {
+    navFrozen.current = false;
+    headroom.current?.unfreeze();
   };
 
   useEffect(() => {
-    let raf = 0;
-    const onScroll = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        const y = window.scrollY;
-        const delta = y - lastY.current;
-        lastY.current = y;
-        setScrolled(y > 8);
-
-        if (suppressHide.current) {
-          accDelta.current = 0;
-          cancelHide();
-          if (Date.now() >= suppressDeadline.current) {
-            suppressHide.current = false;
-          } else {
-            clearTimeout(settleTimer.current);
-            settleTimer.current = setTimeout(
-              () => (suppressHide.current = false),
-              180,
-            );
-          }
-          return;
-        }
-
-        if (delta === 0) return;
-        if (Math.sign(delta) !== Math.sign(accDelta.current))
-          accDelta.current = 0;
-        if (delta < 0) cancelHide();
-        accDelta.current += delta;
-        if (y <= 80) {
-          setHidden(false);
-          accDelta.current = 0;
-          cancelHide();
-        } else if (accDelta.current > 10) {
-          accDelta.current = 0;
-          if (!hideTimer.current) {
-            hideTimer.current = setTimeout(() => {
-              hideTimer.current = undefined;
-              setHidden(true);
-            }, HIDE_DELAY_MS);
-          }
-        } else if (accDelta.current < -6) {
-          setHidden(false);
-          accDelta.current = 0;
-          cancelHide();
-        }
-      });
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
+    if (!headerRef.current) return;
+    const hr = new Headroom(headerRef.current, {
+      offset: { up: 8, down: 80 },
+      tolerance: { up: 5, down: 10 },
+      classes: {
+        initial: "hdr",
+        pinned: "hdr-pinned",
+        unpinned: "hdr-unpinned",
+        top: "hdr-top",
+        notTop: "hdr-not-top",
+        frozen: "hdr-frozen",
+      },
+    });
+    hr.init();
+    headroom.current = hr;
     return () => {
-      cancelAnimationFrame(raf);
-      clearTimeout(settleTimer.current);
-      cancelHide();
-      window.removeEventListener("scroll", onScroll);
+      hr.destroy();
+      headroom.current = null;
     };
   }, []);
 
-  const onNavClick = () => {
-    setOpen(false);
-    setHidden(false);
-    cancelHide();
-    suppressHide.current = true;
-    suppressDeadline.current = Date.now() + 1600;
-    accDelta.current = 0;
-    clearTimeout(settleTimer.current);
-    settleTimer.current = setTimeout(() => (suppressHide.current = false), 180);
-  };
+  useEffect(() => {
+    const hr = headroom.current;
+    if (!hr) return;
+    if (open) {
+      hr.pin();
+      hr.freeze();
+    } else if (!navFrozen.current) {
+      hr.unfreeze();
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (!navFrozen.current) return;
+      clearTimeout(settleTimer.current);
+      settleTimer.current = setTimeout(() => {
+        navFrozen.current = false;
+        headroom.current?.unfreeze();
+      }, NAV_SETTLE_MS);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -119,11 +102,21 @@ export function SiteHeader() {
     return () => obs.disconnect();
   }, []);
 
+  const onNavClick = () => {
+    setOpen(false);
+    navFrozen.current = true;
+    headroom.current?.pin();
+    headroom.current?.freeze();
+    clearTimeout(settleTimer.current);
+    clearTimeout(deadlineTimer.current);
+    settleTimer.current = setTimeout(endNavFreeze, NAV_SETTLE_MS);
+    deadlineTimer.current = setTimeout(endNavFreeze, NAV_FREEZE_MAX_MS);
+  };
+
   return (
     <header
-      className={`sticky top-0 z-20 border-b backdrop-blur-xl transition-[transform,border-color,background-color] duration-300 ${
-        hidden && !open ? "-translate-y-full" : "translate-y-0"
-      } ${scrolled ? "border-line" : "border-transparent"}`}
+      ref={headerRef}
+      className="sticky top-0 z-20 border-b border-transparent backdrop-blur-xl"
       style={{ backgroundColor: "var(--nav-bg)" }}
     >
       <div className="relative mx-auto flex h-[68px] w-full max-w-[1120px] items-center gap-6 px-6">
@@ -139,7 +132,7 @@ export function SiteHeader() {
         <nav
           id="nav-links"
           aria-label="Primary"
-          className={`ml-auto ${open ? "" : "hidden"} border-line bg-panel absolute inset-x-0 top-[68px] flex-col items-stretch gap-0.5 rounded-2xl border p-2.5 shadow-2xl md:static md:flex md:flex-row md:items-center md:gap-1 md:border-0 md:bg-transparent md:p-0 md:shadow-none`}
+          className={`ml-auto ${open ? "flex" : "hidden"} border-line bg-panel absolute inset-x-0 top-[68px] flex-col items-stretch gap-0.5 rounded-2xl border p-2.5 shadow-2xl md:static md:flex md:flex-row md:items-center md:gap-1 md:border-0 md:bg-transparent md:p-0 md:shadow-none`}
         >
           {NAV.map((item) => {
             const isActive = active === item.href.slice(1);
