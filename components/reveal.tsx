@@ -15,12 +15,12 @@ export function Reveal({
 }) {
   const reduce = useReducedMotion();
   const coarse = useCoarsePointer();
-  const hidden = coarse
-    ? { opacity: 0, y: 18 }
-    : { opacity: 0, y: 18, filter: "blur(8px)" };
-  const shown = coarse
-    ? { opacity: 1, y: 0 }
-    : { opacity: 1, y: 0, filter: "blur(0px)" };
+  const hidden = {
+    opacity: 0,
+    y: 18,
+    filter: coarse ? "blur(0px)" : "blur(8px)",
+  };
+  const shown = { opacity: 1, y: 0, filter: "blur(0px)" };
 
   return (
     <motion.div
