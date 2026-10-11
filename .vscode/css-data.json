@@ -1,0 +1,49 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@theme",
+      "description": "Tailwind CSS v4: define design tokens (colors, fonts, breakpoints) as CSS variables for utility generation."
+    },
+    {
+      "name": "@source",
+      "description": "Tailwind CSS v4: register additional source paths or disable automatic content detection."
+    },
+    {
+      "name": "@utility",
+      "description": "Tailwind CSS v4: define a custom utility that works with variants like hover and focus."
+    },
+    {
+      "name": "@variant",
+      "description": "Tailwind CSS v4: apply a Tailwind variant to a rule inside a stylesheet."
+    },
+    {
+      "name": "@custom-variant",
+      "description": "Tailwind CSS v4: define a custom variant usable across utilities."
+    },
+    {
+      "name": "@apply",
+      "description": "Tailwind CSS: inline utility styles into a CSS rule."
+    },
+    {
+      "name": "@reference",
+      "description": "Tailwind CSS v4: import theme variables and custom utilities for use with @apply/@variant without emitting the CSS."
+    },
+    {
+      "name": "@tailwind",
+      "description": "Tailwind CSS: inject base/components/utilities styles (v3) or theme layer directives."
+    },
+    {
+      "name": "@plugin",
+      "description": "Tailwind CSS v4: register a first-party or custom plugin from a stylesheet."
+    },
+    {
+      "name": "@config",
+      "description": "Tailwind CSS v4: load a legacy tailwind.config.js file for compatibility."
+    },
+    {
+      "name": "@screen",
+      "description": "Tailwind CSS: media-query shorthand for a named breakpoint."
+    }
+  ]
+}
