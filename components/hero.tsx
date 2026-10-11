@@ -4,6 +4,8 @@ import { Reveal } from "./reveal";
 import { Parallax } from "./parallax";
 import { SpotlightCard } from "./spotlight-card";
 import { StaggeredHeadline } from "./staggered-headline";
+import { Magnetic } from "./magnetic";
+import { Tilt } from "./tilt";
 import { btnPrimary, btnSecondary, container } from "./ui";
 
 const POINTS = [
@@ -16,9 +18,17 @@ const CHIPS = ["B2B & B2C", "Live prices", "AI-powered"];
 
 export function Hero() {
   return (
-    <section className="relative z-[1] py-16 md:py-24">
+    <section className="relative z-[1] overflow-hidden py-16 md:py-24">
       <div
-        className={`${container} grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14`}
+        aria-hidden="true"
+        className="orb orb-a -top-[15%] -left-[12%] h-[340px] w-[340px] bg-[#5143d9]/20 md:h-[520px] md:w-[520px]"
+      />
+      <div
+        aria-hidden="true"
+        className="orb orb-b -right-[10%] -bottom-[12%] h-[280px] w-[280px] bg-[#22d3ee]/12 md:h-[420px] md:w-[420px]"
+      />
+      <div
+        className={`${container} relative grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14`}
       >
         <div>
           <Reveal>
@@ -37,18 +47,22 @@ export function Hero() {
           </Reveal>
           <Reveal delay={0.3}>
             <div className="mb-7 flex flex-wrap gap-3">
-              <a className={btnPrimary} href="mailto:hello@shevris.com">
-                Start a project
-                <ArrowUpRight size={15} />
-              </a>
-              <a
-                className={btnSecondary}
-                href="https://tijarah.pk"
-                target="_blank"
-                rel="noopener"
-              >
-                Explore Tijarah
-              </a>
+              <Magnetic>
+                <a className={btnPrimary} href="mailto:hello@shevris.com">
+                  Start a project
+                  <ArrowUpRight size={15} />
+                </a>
+              </Magnetic>
+              <Magnetic strength={0.25}>
+                <a
+                  className={btnSecondary}
+                  href="https://tijarah.pk"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Explore Tijarah
+                </a>
+              </Magnetic>
             </div>
           </Reveal>
           <Reveal delay={0.4}>
@@ -70,53 +84,55 @@ export function Hero() {
         <Reveal delay={0.45} className="relative">
           <div className="pointer-events-none absolute -inset-6 bg-[radial-gradient(400px_280px_at_60%_40%,rgba(81,67,217,0.16),transparent_70%)]" />
           <Parallax offset={28}>
-            <SpotlightCard
-              href="https://tijarah.pk"
-              external
-              className="border-line bg-panel hover:border-accent relative block rounded-[20px] border p-6 shadow-[0_24px_64px_rgba(0,0,0,0.22)] transition-all hover:-translate-y-1 hover:shadow-[0_28px_72px_rgba(81,67,217,0.2)] md:p-[30px]"
-            >
-              <div className="mb-[18px] flex items-center gap-4">
-                <Image
-                  src="/tijarah-mark.png"
-                  alt="Tijarah logo"
-                  width={52}
-                  height={52}
-                  className="h-[52px] w-[52px] shrink-0 rounded-[14px]"
-                />
-                <div>
-                  <span className="block text-[19px] font-bold tracking-[-0.02em]">
-                    Tijarah
-                  </span>
-                  <span className="text-muted mt-[3px] block text-xs font-semibold tracking-[0.06em] uppercase">
-                    Flagship product
+            <Tilt max={5} className="relative">
+              <SpotlightCard
+                href="https://tijarah.pk"
+                external
+                className="border-line bg-panel hover:border-accent relative block rounded-[20px] border p-6 shadow-[0_24px_64px_rgba(0,0,0,0.22)] transition-all hover:-translate-y-1 hover:shadow-[0_28px_72px_rgba(81,67,217,0.2)] md:p-[30px]"
+              >
+                <div className="mb-[18px] flex items-center gap-4">
+                  <Image
+                    src="/tijarah-mark.png"
+                    alt="Tijarah logo"
+                    width={52}
+                    height={52}
+                    className="h-[52px] w-[52px] shrink-0 rounded-[14px]"
+                  />
+                  <div>
+                    <span className="block text-[19px] font-bold tracking-[-0.02em]">
+                      Tijarah
+                    </span>
+                    <span className="text-muted mt-[3px] block text-xs font-semibold tracking-[0.06em] uppercase">
+                      Flagship product
+                    </span>
+                  </div>
+                </div>
+                <p className="text-muted mb-5 text-[14.5px] leading-relaxed">
+                  Pakistan&apos;s upcoming B2B &amp; B2C marketplace — wholesale
+                  trade, live market prices, and AI-powered shopping.
+                </p>
+                <div className="mb-6 flex flex-wrap gap-2">
+                  {CHIPS.map((chip) => (
+                    <span
+                      key={chip}
+                      className="border-line bg-canvas text-muted rounded-full border px-3 py-[5px] text-xs font-medium"
+                    >
+                      {chip}
+                    </span>
+                  ))}
+                  <span className="bg-canvas rounded-full border border-[#4ade804d] px-3 py-[5px] text-xs font-medium text-[#4ade80]">
+                    Waitlist open
                   </span>
                 </div>
-              </div>
-              <p className="text-muted mb-5 text-[14.5px] leading-relaxed">
-                Pakistan&apos;s upcoming B2B &amp; B2C marketplace — wholesale
-                trade, live market prices, and AI-powered shopping.
-              </p>
-              <div className="mb-6 flex flex-wrap gap-2">
-                {CHIPS.map((chip) => (
-                  <span
-                    key={chip}
-                    className="border-line bg-canvas text-muted rounded-full border px-3 py-[5px] text-xs font-medium"
-                  >
-                    {chip}
-                  </span>
-                ))}
-                <span className="bg-canvas rounded-full border border-[#4ade804d] px-3 py-[5px] text-xs font-medium text-[#4ade80]">
-                  Waitlist open
+                <span className="text-accent inline-flex items-center gap-[7px] text-sm font-semibold">
+                  tijarah.pk
+                  <ArrowUpRight
+                    size={14}
+                    className="transition-transform group-hover:translate-x-0.5"
+                  />
                 </span>
-              </div>
-              <span className="text-accent inline-flex items-center gap-[7px] text-sm font-semibold">
-                tijarah.pk
-                <ArrowUpRight
-                  size={14}
-                  className="transition-transform group-hover:translate-x-0.5"
-                />
-              </span>
-            </SpotlightCard>
+              </SpotlightCard>
+            </Tilt>
           </Parallax>
         </Reveal>
       </div>

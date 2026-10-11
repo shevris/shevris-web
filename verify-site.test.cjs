@@ -51,10 +51,14 @@ test("generated PNGs have the intended dimensions", () => {
   }
 });
 
-test("animations are finite and reduced motion is respected", () => {
-  assert.doesNotMatch(sources, /\binfinite\b|repeat:\s*Infinity/);
+test("attention animations are finite and reduced motion is respected", () => {
+  const ambientFree = sources.replace(/\.orb-[ab]\s*\{[^}]*\}/g, "");
+  assert.doesNotMatch(ambientFree, /\binfinite\b|repeat:\s*Infinity/);
   assert.match(read("components/logo-mark.tsx"), /useReducedMotion/);
   assert.match(read("components/reveal.tsx"), /useReducedMotion/);
+  assert.match(read("components/magnetic.tsx"), /useReducedMotion/);
+  assert.match(read("components/tilt.tsx"), /useReducedMotion/);
+  assert.match(read("components/particle-field.tsx"), /prefers-reduced-motion/);
   assert.match(read("app/globals.css"), /prefers-reduced-motion:\s*reduce/);
   assert.match(read("app/page.tsx"), /data-reveal/);
 });

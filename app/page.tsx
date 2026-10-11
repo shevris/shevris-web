@@ -5,6 +5,7 @@ import { ProductSpotlight } from "@/components/product-spotlight";
 import { Principles } from "@/components/principles";
 import { CtaBand } from "@/components/cta-band";
 import { SiteFooter } from "@/components/site-footer";
+import { ParticleField } from "@/components/particle-field";
 
 export default function Home() {
   return (
@@ -15,6 +16,7 @@ export default function Home() {
       >
         Skip to content
       </a>
+      <ParticleField />
       <div className="grain" aria-hidden="true" />
       <div
         className="pointer-events-none fixed inset-0 opacity-65"
