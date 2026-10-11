@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { LogoMark, Wordmark } from "./logo-mark";
 import { ThemeToggle } from "./theme-toggle";
@@ -30,27 +31,27 @@ export function SiteHeader() {
       }`}
       style={{ backgroundColor: "var(--nav-bg)" }}
     >
-      <div className="mx-auto flex h-[68px] w-full max-w-[1120px] items-center gap-6 px-6 relative">
-        <a
+      <div className="relative mx-auto flex h-[68px] w-full max-w-[1120px] items-center gap-6 px-6">
+        <Link
           href="/"
           aria-label="Shevris Technologies — home"
           className="flex shrink-0 items-center gap-2.5"
         >
           <LogoMark size={34} />
           <Wordmark />
-        </a>
+        </Link>
 
         <nav
           id="nav-links"
           aria-label="Primary"
-          className={`ml-auto ${open ? "" : "hidden"} absolute inset-x-0 top-[68px] flex-col items-stretch gap-0.5 rounded-2xl border border-line bg-panel p-2.5 shadow-2xl md:static md:flex md:flex-row md:items-center md:gap-1 md:border-0 md:bg-transparent md:p-0 md:shadow-none`}
+          className={`ml-auto ${open ? "" : "hidden"} border-line bg-panel absolute inset-x-0 top-[68px] flex-col items-stretch gap-0.5 rounded-2xl border p-2.5 shadow-2xl md:static md:flex md:flex-row md:items-center md:gap-1 md:border-0 md:bg-transparent md:p-0 md:shadow-none`}
         >
           {NAV.map((item) => (
             <a
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-panel hover:text-ink md:hover:bg-panel"
+              className="text-muted hover:bg-panel hover:text-ink md:hover:bg-panel rounded-lg px-3 py-2 text-sm font-medium transition-colors"
             >
               {item.label}
             </a>
@@ -61,7 +62,7 @@ export function SiteHeader() {
           <ThemeToggle />
           <a
             href="mailto:hello@shevris.com"
-            className="hidden rounded-[10px] bg-brand px-4 py-2.5 text-[13.5px] font-semibold text-white shadow-[0_8px_24px_rgba(81,67,217,0.28)] transition-transform hover:-translate-y-0.5 md:inline-flex"
+            className="bg-brand hidden rounded-[10px] px-4 py-2.5 text-[13.5px] font-semibold text-white shadow-[0_8px_24px_rgba(81,67,217,0.28)] transition-transform hover:-translate-y-0.5 md:inline-flex"
           >
             Start a project
           </a>
@@ -71,7 +72,7 @@ export function SiteHeader() {
             aria-controls="nav-links"
             aria-label="Menu"
             onClick={() => setOpen((v) => !v)}
-            className="grid h-[34px] w-9 place-items-center rounded-lg border border-line bg-panel text-muted md:hidden"
+            className="border-line bg-panel text-muted grid h-[34px] w-9 place-items-center rounded-lg border md:hidden"
           >
             {open ? <X size={16} /> : <Menu size={16} />}
           </button>
