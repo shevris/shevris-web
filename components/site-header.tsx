@@ -13,6 +13,8 @@ const NAV = [
   { href: "#contact", label: "Contact" },
 ];
 
+const HIDE_DELAY_MS = 400;
+
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
@@ -23,6 +25,12 @@ export function SiteHeader() {
   const suppressHide = useRef(false);
   const suppressDeadline = useRef(0);
   const settleTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const hideTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const cancelHide = () => {
+    clearTimeout(hideTimer.current);
+    hideTimer.current = undefined;
+  };
 
   useEffect(() => {
     let raf = 0;
@@ -37,6 +45,7 @@ export function SiteHeader() {
 
         if (suppressHide.current) {
           accDelta.current = 0;
+          cancelHide();
           if (Date.now() >= suppressDeadline.current) {
             suppressHide.current = false;
           } else {
@@ -50,16 +59,27 @@ export function SiteHeader() {
         }
 
         if (delta === 0) return;
-        if (Math.sign(delta) !== Math.sign(accDelta.current))
+        if (Math.sign(delta) !== Math.sign(accDelta.current)) {
           accDelta.current = 0;
+          cancelHide();
+        }
         accDelta.current += delta;
-        if (y <= 80) setHidden(false);
-        else if (accDelta.current > 10) {
-          setHidden(true);
+        if (y <= 80) {
+          setHidden(false);
           accDelta.current = 0;
+          cancelHide();
+        } else if (accDelta.current > 10) {
+          accDelta.current = 0;
+          if (!hideTimer.current) {
+            hideTimer.current = setTimeout(() => {
+              hideTimer.current = undefined;
+              setHidden(true);
+            }, HIDE_DELAY_MS);
+          }
         } else if (accDelta.current < -6) {
           setHidden(false);
           accDelta.current = 0;
+          cancelHide();
         }
       });
     };
@@ -68,6 +88,7 @@ export function SiteHeader() {
     return () => {
       cancelAnimationFrame(raf);
       clearTimeout(settleTimer.current);
+      cancelHide();
       window.removeEventListener("scroll", onScroll);
     };
   }, []);
@@ -75,6 +96,7 @@ export function SiteHeader() {
   const onNavClick = () => {
     setOpen(false);
     setHidden(false);
+    cancelHide();
     suppressHide.current = true;
     suppressDeadline.current = Date.now() + 1600;
     accDelta.current = 0;
