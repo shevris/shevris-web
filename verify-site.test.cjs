@@ -62,6 +62,7 @@ test("animations are finite and reduced motion is respected", () => {
 test("required files and deployment config exist", () => {
   for (const f of [
     "public/CNAME",
+    "public/tijarah-mark.png",
     "next.config.ts",
     "app/layout.tsx",
     "app/page.tsx",
