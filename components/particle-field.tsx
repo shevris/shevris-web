@@ -45,6 +45,7 @@ export function ParticleField() {
     const coarse = window.matchMedia("(pointer: coarse)").matches;
     const cursorLink = coarse ? LINK * 2.2 : CURSOR_LINK;
     const repelRadius = coarse ? REPEL_RADIUS * 0.6 : REPEL_RADIUS;
+    const repelRadiusSq = repelRadius * repelRadius;
 
     const seed = () => {
       const count = Math.min(90, Math.max(30, Math.floor((w * h) / 24000)));
@@ -87,8 +88,7 @@ export function ParticleField() {
         const dx = n.x - mouse.x;
         const dy = n.y - mouse.y;
         const d2 = dx * dx + dy * dy;
-        const rr = repelRadius * repelRadius;
-        if (d2 < rr && d2 > 0.01) {
+        if (d2 < repelRadiusSq && d2 > 0.01) {
           const d = Math.sqrt(d2);
           const f = ((repelRadius - d) / repelRadius) * 1.1;
           n.x += (dx / d) * f * k;
