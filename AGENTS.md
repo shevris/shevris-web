@@ -20,4 +20,5 @@
 - `.editorconfig` + `.gitattributes` (`eol=lf`) keep line endings stable on Windows. `.nvmrc`/`engines` pin Node 20+; CI uses 22.
 - Dependabot targets `development` weekly with 7-day cooldown (14 days for majors), grouped into `next-stack` and `toolchain`.
 - **Accepted risk**: `braces`/`micromatch`/`fast-glob` inside `eslint-config-next` are flagged by GHSA-vfj7-8cjw-p6xm (`braces <=3.0.3`, dev-only DoS via crafted globs). No patched release exists yet; `overrides` in `package.json` pin `^` ranges so the fix auto-lands. Re-check on the next `npm audit`.
+- **Dependabot ignores**: `eslint >=10` (eslint-config-next plugin chain caps at 9) and `typescript >=6` (typescript-eslint doesn't support it). Periodically retry — remove the ignore when the ecosystem catches up.
 - `unrs-resolver`'s postinstall stays blocked (npm default-deny); ESLint works without it. Only approve it in `allowScripts` if lint ever fails for a missing native binary.
