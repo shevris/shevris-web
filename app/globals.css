@@ -7,6 +7,7 @@
   --line: #36384a;
   --brand-solid: #5143d9;
   --accent: #8f86ff;
+  --gradient-mid: #8f86ff;
   --text: #f5f4fa;
   --muted: #b4b6c6;
   --dim: #a0a3b5;
@@ -22,6 +23,7 @@
   --line: #dcdce3;
   --brand-solid: #5143d9;
   --accent: #5143d9;
+  --gradient-mid: #3a2fd0;
   --text: #161925;
   --muted: #555866;
   --dim: #626572;
@@ -95,10 +97,26 @@ html {
 
 /* ---------- gradient text ---------- */
 .text-gradient {
-  background: linear-gradient(135deg, var(--brand-solid), var(--accent));
+  background: linear-gradient(
+    120deg,
+    var(--brand-solid),
+    var(--gradient-mid),
+    var(--brand-solid)
+  );
+  background-size: 220% auto;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  animation: gradient-sweep 7s ease-in-out infinite alternate;
+}
+
+@keyframes gradient-sweep {
+  from {
+    background-position: 0% center;
+  }
+  to {
+    background-position: 100% center;
+  }
 }
 
 /* ---------- spotlight card ---------- */
@@ -229,7 +247,8 @@ html {
     transition-delay: 0s;
   }
   .orb-a,
-  .orb-b {
+  .orb-b,
+  .text-gradient {
     animation: none;
   }
 }
