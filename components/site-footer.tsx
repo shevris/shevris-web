@@ -8,6 +8,8 @@ const EXPLORE = [
   { href: "/#company", label: "Company" },
   { href: "/notes", label: "Engineering notes" },
   { href: "/status", label: "Status" },
+  { href: "/brand", label: "Brand & press" },
+  { href: "/security", label: "Security" },
 ];
 
 const PRODUCT = [
