@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Engineering notes feed. Keep in sync with NOTES in app/notes/page.tsx. -->
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Shevris — Engineering notes</title>
+    <link>https://shevris.com/notes</link>
+    <description>A running log of releases, fixes, and infrastructure changes across Shevris products.</description>
+    <language>en</language>
+    <atom:link href="https://shevris.com/notes.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Touch reaches parity with the cursor</title>
+      <link>https://shevris.com/notes#touch-cursor-parity</link>
+      <guid isPermaLink="true">https://shevris.com/notes#touch-cursor-parity</guid>
+      <pubDate>Mon, 12 Oct 2026 00:00:00 GMT</pubDate>
+      <description>The constellation now treats a finger exactly like a mouse — same 90px repel radius, same link distance. Push a strayed fragment with your thumb and it merges into a neighbouring web by proximity.</description>
+    </item>
+    <item>
+      <title>Zero blank frames on cold mobile loads</title>
+      <link>https://shevris.com/notes#no-blank-frames-mobile</link>
+      <guid isPermaLink="true">https://shevris.com/notes#no-blank-frames-mobile</guid>
+      <pubDate>Mon, 12 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Section reveals now render fully visible in server HTML and only hide below the fold after their observer attaches — the documented-safe pattern for scroll animations. First paint no longer depends on hydration.</description>
+    </item>
+    <item>
+      <title>Scroll jank eliminated on touch devices</title>
+      <link>https://shevris.com/notes#scroll-jank-touch-devices</link>
+      <guid isPermaLink="true">https://shevris.com/notes#scroll-jank-touch-devices</guid>
+      <pubDate>Mon, 12 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Blur reveals snap instantly on coarse pointers, the constellation caps at 30fps with delta-time scaling, and ambient orbs moved from blur filters to radial gradients — removing the three largest per-frame raster costs we could measure.</description>
+    </item>
+    <item>
+      <title>Interactive constellation shipped</title>
+      <link>https://shevris.com/notes#interactive-constellation</link>
+      <guid isPermaLink="true">https://shevris.com/notes#interactive-constellation</guid>
+      <pubDate>Sun, 11 Oct 2026 00:00:00 GMT</pubDate>
+      <description>A canvas particle field with pointer repel, magnetic CTAs, 3D card tilt, and ambient gradient orbs — all disabled under prefers-reduced-motion, all off the compositor-critical path.</description>
+    </item>
+    <item>
+      <title>shevris.com is live</title>
+      <link>https://shevris.com/notes#shevris-com-live</link>
+      <guid isPermaLink="true">https://shevris.com/notes#shevris-com-live</guid>
+      <pubDate>Sun, 11 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Cutline identity on a Next.js static export, deployed to GitHub Pages through a development → main Git Flow with semantic PR gates, lint/typecheck/test CI, and Dependabot on a release-age cooldown.</description>
+    </item>
+    <item>
+      <title>Blue/green deploys for tijarah-api</title>
+      <link>https://shevris.com/notes#tijarah-blue-green-deploys</link>
+      <guid isPermaLink="true">https://shevris.com/notes#tijarah-blue-green-deploys</guid>
+      <pubDate>Thu, 01 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Production and dev environments now deploy behind nginx upstream flips with health-gated rollback — no shared-state outages between releases.</description>
+    </item>
+    <item>
+      <title>OIDC deployments, no stored credentials</title>
+      <link>https://shevris.com/notes#oidc-deployments</link>
+      <guid isPermaLink="true">https://shevris.com/notes#oidc-deployments</guid>
+      <pubDate>Thu, 01 Oct 2026 00:00:00 GMT</pubDate>
+      <description>GitHub Actions authenticates to AWS via short-lived OIDC tokens. Long-lived access keys removed from the pipeline entirely.</description>
+    </item>
+    <item>
+      <title>Waitlist live at tijarah.pk</title>
+      <link>https://shevris.com/notes#tijarah-waitlist-live</link>
+      <guid isPermaLink="true">https://shevris.com/notes#tijarah-waitlist-live</guid>
+      <pubDate>Thu, 01 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Independent GitHub Pages site accepting early signups ahead of the marketplace launch.</description>
+    </item>
+  </channel>
+</rss>
