@@ -76,9 +76,11 @@ export function ParticleField() {
     };
 
     let lastTick = performance.now();
+    let scrolling = false;
+    let scrollTimer: ReturnType<typeof setTimeout>;
     const tick = (t: number) => {
       raf = requestAnimationFrame(tick);
-      if (coarse && t - lastTick < 33) return;
+      if ((scrolling && !coarse) || (coarse && t - lastTick < 33)) return;
       const k = Math.min((t - lastTick) / 16.67, 3);
       lastTick = t;
       ctx.clearRect(0, 0, w, h);
@@ -179,6 +181,13 @@ export function ParticleField() {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(resize, 200);
     };
+    const onScroll = () => {
+      scrolling = true;
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        scrolling = false;
+      }, 150);
+    };
 
     resize();
     start();
@@ -190,11 +199,13 @@ export function ParticleField() {
     window.addEventListener("touchcancel", onTouchEnd);
     document.documentElement.addEventListener("pointerleave", onLeave);
     window.addEventListener("resize", onResize);
+    window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
       stop();
       clearTimeout(resizeTimer);
       clearTimeout(parkTimer);
+      clearTimeout(scrollTimer);
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", onMove);
@@ -203,6 +214,7 @@ export function ParticleField() {
       window.removeEventListener("touchcancel", onTouchEnd);
       document.documentElement.removeEventListener("pointerleave", onLeave);
       window.removeEventListener("resize", onResize);
+      window.removeEventListener("scroll", onScroll);
     };
   }, []);
 
