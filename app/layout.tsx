@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://shevris.com"),
   title: "Shevris Technologies — Software Company",
   description:
-    "Shevris Technologies is an independent software company in Lahore, Pakistan — custom software, web & mobile apps, cloud engineering, and Tijarah, our own commerce marketplace.",
+    "Shevris Technologies is an independent software company in Lahore, Pakistan — building subscription products for commerce, starting with Tijarah, our own marketplace.",
   authors: [{ name: "Shevris Technologies" }],
   alternates: { canonical: "/" },
   icons: {
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     siteName: "Shevris Technologies",
     title: "Shevris Technologies — Software Company",
     description:
-      "Independent software company in Lahore, Pakistan. Custom software, cloud engineering, and Tijarah — our own commerce marketplace.",
+      "Independent software company in Lahore, Pakistan, building subscription products for commerce. First product: Tijarah.",
     images: [
       {
         url: "https://shevris.com/og-image.png",
@@ -69,7 +69,7 @@ export default function RootLayout({
               url: "https://shevris.com",
               logo: "https://shevris.com/logo.png",
               description:
-                "Independent software company in Lahore, Pakistan — custom software, web & mobile apps, cloud engineering, and Tijarah.",
+                "Independent software company in Lahore, Pakistan — building subscription products for commerce, starting with Tijarah.",
               email: "hello@shevris.com",
               address: {
                 "@type": "PostalAddress",

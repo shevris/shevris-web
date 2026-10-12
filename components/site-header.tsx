@@ -8,7 +8,6 @@ import { LogoMark, Wordmark } from "./logo-mark";
 import { ThemeToggle } from "./theme-toggle";
 
 const NAV = [
-  { href: "/#services", label: "Services" },
   { href: "/#product", label: "Product" },
   { href: "/#company", label: "Company" },
   { href: "/#contact", label: "Contact" },
@@ -162,10 +161,12 @@ export function SiteHeader() {
         <div className="ml-auto flex items-center gap-3 md:ml-0">
           <ThemeToggle />
           <a
-            href="mailto:hello@shevris.com"
+            href="https://tijarah.pk"
+            target="_blank"
+            rel="noopener"
             className="bg-brand hidden rounded-[10px] px-4 py-2.5 text-[13.5px] font-semibold text-white shadow-[0_8px_24px_rgba(81,67,217,0.28)] transition-all hover:-translate-y-0.5 active:scale-[0.97] md:inline-flex"
           >
-            Start a project
+            Join waitlist
           </a>
           <button
             type="button"
