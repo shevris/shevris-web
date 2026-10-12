@@ -15,14 +15,25 @@ export function CtaBand() {
       <div className={`${container} relative`}>
         <Reveal>
           <div className="border-line rounded-3xl border bg-[radial-gradient(600px_240px_at_50%_0%,rgba(81,67,217,0.16),transparent_70%),var(--panel)] px-6 py-14 text-center md:py-[72px]">
-            <h2 className={h2}>Have something to build?</h2>
+            <h2 className={h2}>Tijarah is next.</h2>
             <p className="text-muted mx-auto mb-8 max-w-[480px] text-[16.5px] leading-relaxed">
-              Tell us about the product, platform, or problem — we answer every
-              serious inquiry.
+              Join the waitlist for launch-day access — or write to{" "}
+              <a
+                href="mailto:hello@shevris.com"
+                className="text-accent hover:underline"
+              >
+                hello@shevris.com
+              </a>
+              .
             </p>
             <Magnetic>
-              <a className={btnPrimary} href="mailto:hello@shevris.com">
-                hello@shevris.com
+              <a
+                className={btnPrimary}
+                href="https://tijarah.pk"
+                target="_blank"
+                rel="noopener"
+              >
+                Join the waitlist
                 <ArrowUpRight size={15} />
               </a>
             </Magnetic>

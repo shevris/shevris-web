@@ -15,7 +15,7 @@ const PRINCIPLES = [
   {
     num: "03",
     title: "Built in Lahore",
-    desc: "An independent company engineering products for Pakistan's commerce — and clients beyond it.",
+    desc: "An independent company engineering products for Pakistan's commerce — and markets beyond it.",
   },
 ];
 

@@ -10,7 +10,7 @@ import { btnPrimary, btnSecondary, container } from "./ui";
 
 const POINTS = [
   "Design through deployment",
-  "Client work & own products",
+  "Products, not projects",
   "Lahore, Pakistan",
 ];
 
@@ -40,27 +40,27 @@ export function Hero() {
           <StaggeredHeadline />
           <Reveal delay={0.2}>
             <p className="text-muted mb-8 max-w-[520px] text-[16.5px] leading-relaxed md:text-lg">
-              Shevris Technologies designs and engineers software for commerce —
-              custom platforms for clients, and Tijarah, our own marketplace for
+              Shevris Technologies builds subscription software products for
+              commerce — starting with Tijarah, our own marketplace for
               Pakistan.
             </p>
           </Reveal>
           <Reveal delay={0.3}>
             <div className="mb-7 flex flex-wrap gap-3">
               <Magnetic>
-                <a className={btnPrimary} href="mailto:hello@shevris.com">
-                  Start a project
-                  <ArrowUpRight size={15} />
-                </a>
-              </Magnetic>
-              <Magnetic strength={0.25}>
                 <a
-                  className={btnSecondary}
+                  className={btnPrimary}
                   href="https://tijarah.pk"
                   target="_blank"
                   rel="noopener"
                 >
-                  Explore Tijarah
+                  Join the Tijarah waitlist
+                  <ArrowUpRight size={15} />
+                </a>
+              </Magnetic>
+              <Magnetic strength={0.25}>
+                <a className={btnSecondary} href="mailto:hello@shevris.com">
+                  Get in touch
                 </a>
               </Magnetic>
             </div>
