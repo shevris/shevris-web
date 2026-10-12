@@ -8,10 +8,11 @@ import { LogoMark, Wordmark } from "./logo-mark";
 import { ThemeToggle } from "./theme-toggle";
 
 const NAV = [
-  { href: "#services", label: "Services" },
-  { href: "#product", label: "Product" },
-  { href: "#company", label: "Company" },
-  { href: "#contact", label: "Contact" },
+  { href: "/#services", label: "Services" },
+  { href: "/#product", label: "Product" },
+  { href: "/#company", label: "Company" },
+  { href: "/#contact", label: "Contact" },
+  { href: "/notes", label: "Notes" },
 ];
 
 const NAV_SETTLE_MS = 180;
@@ -96,7 +97,8 @@ export function SiteHeader() {
       { rootMargin: "-35% 0px -60% 0px" },
     );
     NAV.forEach((n) => {
-      const el = document.getElementById(n.href.slice(1));
+      const id = n.href.split("#")[1];
+      const el = id ? document.getElementById(id) : null;
       if (el) obs.observe(el);
     });
     return () => obs.disconnect();
