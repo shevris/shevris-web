@@ -9,6 +9,8 @@
 - [Homepage](https://shevris.com): product spotlight, principles, and contact
 - [Engineering notes](https://shevris.com/notes): running log of what we ship
 - [Status](https://shevris.com/status): operational status of Shevris systems
+- [Brand & press](https://shevris.com/brand): logos, colors, and usage guidelines
+- [Security](https://shevris.com/security): disclosure policy and practices
 
 ## Product
 
