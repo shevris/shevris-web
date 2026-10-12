@@ -42,14 +42,10 @@ export function ParticleField() {
     }[] = [];
     const mouse = { x: -9999, y: -9999 };
     let touchId: number | null = null;
-    let grab: { i: number; dx: number; dy: number }[] = [];
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const coarse = window.matchMedia("(pointer: coarse)").matches;
     const cursorLink = CURSOR_LINK;
-    const repelRadius = coarse ? REPEL_RADIUS * 0.6 : REPEL_RADIUS;
-    const repelRadiusSq = repelRadius * repelRadius;
-    const grabRadius = 90;
-    const maxGrab = 8;
+    const repelRadiusSq = REPEL_RADIUS * REPEL_RADIUS;
 
     const seed = () => {
       const count = Math.min(90, Math.max(30, Math.floor((w * h) / 24000)));
@@ -97,30 +93,19 @@ export function ParticleField() {
       lastTick = t;
       ctx.clearRect(0, 0, w, h);
       const pal = palette.current;
-      if (grab.length) {
-        for (const g of grab) {
-          const n = nodes[g.i];
-          n.x = Math.min(w, Math.max(0, mouse.x + g.dx));
-          n.y = Math.min(h, Math.max(0, mouse.y + g.dy));
-        }
-      }
-      const grabbed = grab.length ? new Set(grab.map((g) => g.i)) : null;
-      for (let i = 0; i < nodes.length; i++) {
-        const n = nodes[i];
-        if (!grabbed?.has(i)) {
-          n.x += n.vx * k;
-          n.y += n.vy * k;
-          if (n.x < 0 || n.x > w) n.vx *= -1;
-          if (n.y < 0 || n.y > h) n.vy *= -1;
-          const dx = n.x - mouse.x;
-          const dy = n.y - mouse.y;
-          const d2 = dx * dx + dy * dy;
-          if (!coarse && d2 < repelRadiusSq && d2 > 0.01) {
-            const d = Math.sqrt(d2);
-            const f = ((repelRadius - d) / repelRadius) * 1.1;
-            n.x += (dx / d) * f * k;
-            n.y += (dy / d) * f * k;
-          }
+      for (const n of nodes) {
+        n.x += n.vx * k;
+        n.y += n.vy * k;
+        if (n.x < 0 || n.x > w) n.vx *= -1;
+        if (n.y < 0 || n.y > h) n.vy *= -1;
+        const dx = n.x - mouse.x;
+        const dy = n.y - mouse.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < repelRadiusSq && d2 > 0.01) {
+          const d = Math.sqrt(d2);
+          const f = ((REPEL_RADIUS - d) / REPEL_RADIUS) * 1.1;
+          n.x += (dx / d) * f * k;
+          n.y += (dy / d) * f * k;
         }
         ctx.fillStyle = `rgba(${n.c === "a" ? pal.accent : pal.dot},${n.a})`;
         ctx.beginPath();
@@ -144,7 +129,7 @@ export function ParticleField() {
         const mdx = nodes[i].x - mouse.x;
         const mdy = nodes[i].y - mouse.y;
         const md = Math.hypot(mdx, mdy);
-        if (!coarse && md < cursorLink) {
+        if (md < cursorLink) {
           ctx.strokeStyle = `rgba(${pal.accent},${(1 - md / cursorLink) * 0.22})`;
           ctx.lineWidth = 1;
           ctx.beginPath();
@@ -179,37 +164,6 @@ export function ParticleField() {
       clearTimeout(parkTimer);
       mouse.x = t.clientX;
       mouse.y = t.clientY;
-      let nearest = -1;
-      let best = grabRadius * grabRadius;
-      nodes.forEach((n, i) => {
-        const dx = n.x - t.clientX;
-        const dy = n.y - t.clientY;
-        const d = dx * dx + dy * dy;
-        if (d < best) {
-          best = d;
-          nearest = i;
-        }
-      });
-      if (nearest < 0) return;
-      const seen = new Set([nearest]);
-      const queue = [nearest];
-      while (queue.length && seen.size < maxGrab) {
-        const i = queue.shift() as number;
-        nodes.forEach((n, j) => {
-          if (seen.has(j) || seen.size >= maxGrab) return;
-          const dx = nodes[i].x - n.x;
-          const dy = nodes[i].y - n.y;
-          if (dx * dx + dy * dy < LINK * LINK) {
-            seen.add(j);
-            queue.push(j);
-          }
-        });
-      }
-      grab = [...seen].map((i) => ({
-        i,
-        dx: nodes[i].x - t.clientX,
-        dy: nodes[i].y - t.clientY,
-      }));
     };
     const onTouch = (e: TouchEvent) => {
       for (let i = 0; i < e.touches.length; i++) {
@@ -238,11 +192,6 @@ export function ParticleField() {
         if (!ended) return;
       }
       touchId = null;
-      for (const g of grab) {
-        nodes[g.i].vx = (Math.random() - 0.5) * 0.35;
-        nodes[g.i].vy = (Math.random() - 0.5) * 0.35;
-      }
-      grab = [];
       clearTimeout(parkTimer);
       parkTimer = setTimeout(
         () => {
