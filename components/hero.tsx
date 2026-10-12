@@ -21,11 +21,11 @@ export function Hero() {
     <section className="relative z-[1] overflow-hidden py-16 md:py-24">
       <div
         aria-hidden="true"
-        className="orb orb-a -top-[15%] -left-[12%] h-[340px] w-[340px] bg-[#5143d9]/20 md:h-[520px] md:w-[520px]"
+        className="orb orb-a -top-[15%] -left-[12%] h-[340px] w-[340px] [--orb-a:0.20] [--orb-rgb:81_67_217] md:h-[520px] md:w-[520px]"
       />
       <div
         aria-hidden="true"
-        className="orb orb-b -right-[10%] -bottom-[12%] h-[280px] w-[280px] bg-[#22d3ee]/12 md:h-[420px] md:w-[420px]"
+        className="orb orb-b -right-[10%] -bottom-[12%] h-[280px] w-[280px] [--orb-a:0.12] [--orb-rgb:34_211_238] md:h-[420px] md:w-[420px]"
       />
       <div
         className={`${container} relative grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14`}

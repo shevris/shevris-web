@@ -170,7 +170,11 @@ html {
 .orb {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(70px);
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgb(var(--orb-rgb, 81 67 217) / var(--orb-a, 0.2)) 0%,
+    transparent 68%
+  );
   pointer-events: none;
   will-change: transform;
 }
