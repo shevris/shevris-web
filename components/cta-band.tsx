@@ -10,7 +10,7 @@ export function CtaBand() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 grid place-items-center"
       >
-        <div className="orb orb-b bg-brand/15 h-[380px] w-[560px]" />
+        <div className="orb orb-b h-[380px] w-[560px] [--orb-a:0.15] [--orb-rgb:81_67_217]" />
       </div>
       <div className={`${container} relative`}>
         <Reveal>
