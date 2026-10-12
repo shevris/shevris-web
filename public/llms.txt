@@ -1,0 +1,15 @@
+# Shevris Technologies
+
+> Independent software company in Lahore, Pakistan. Custom software, web &
+> mobile apps, and cloud engineering — plus Tijarah, our own commerce
+> marketplace.
+
+## Company
+
+- [Homepage](https://shevris.com): services, product spotlight, and contact
+- [Engineering notes](https://shevris.com/notes): running log of what we ship
+- [Status](https://shevris.com/status): operational status of Shevris systems
+
+## Product
+
+- [Tijarah waitlist](https://tijarah.pk): commerce marketplace in pre-launch

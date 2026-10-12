@@ -60,7 +60,7 @@ test("attention animations are finite and reduced motion is respected", () => {
   assert.match(read("components/tilt.tsx"), /useReducedMotion/);
   assert.match(read("components/particle-field.tsx"), /prefers-reduced-motion/);
   assert.match(read("app/globals.css"), /prefers-reduced-motion:\s*reduce/);
-  assert.match(read("app/page.tsx"), /data-reveal/);
+  assert.match(read("components/page-shell.tsx"), /data-reveal/);
 });
 
 test("required files and deployment config exist", () => {

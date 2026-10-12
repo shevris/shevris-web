@@ -59,6 +59,29 @@ export default function RootLayout({
       <body
         className={`${inter.variable} flex min-h-screen flex-col font-sans`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Shevris Technologies",
+              url: "https://shevris.com",
+              logo: "https://shevris.com/logo.png",
+              description:
+                "Independent software company in Lahore, Pakistan — custom software, web & mobile apps, cloud engineering, and Tijarah.",
+              email: "hello@shevris.com",
+              address: {
+                "@type": "PostalAddress",
+                streetAddress: "433 Iqbal, Ravi Block Town",
+                addressLocality: "Lahore",
+                postalCode: "54000",
+                addressCountry: "PK",
+              },
+              sameAs: ["https://github.com/shevris"],
+            }),
+          }}
+        />
         <ThemeProvider
           attribute="data-theme"
           defaultTheme="system"

@@ -4,9 +4,11 @@ import Link from "next/link";
 import { LogoMark, Wordmark } from "./logo-mark";
 
 const EXPLORE = [
-  { href: "#services", label: "Services" },
-  { href: "#product", label: "Product" },
-  { href: "#company", label: "Company" },
+  { href: "/#services", label: "Services" },
+  { href: "/#product", label: "Product" },
+  { href: "/#company", label: "Company" },
+  { href: "/notes", label: "Engineering notes" },
+  { href: "/status", label: "Status" },
 ];
 
 const PRODUCT = [
