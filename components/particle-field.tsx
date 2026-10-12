@@ -45,7 +45,7 @@ export function ParticleField() {
     let grab: { i: number; dx: number; dy: number }[] = [];
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const coarse = window.matchMedia("(pointer: coarse)").matches;
-    const cursorLink = coarse ? LINK * 2.2 : CURSOR_LINK;
+    const cursorLink = CURSOR_LINK;
     const repelRadius = coarse ? REPEL_RADIUS * 0.6 : REPEL_RADIUS;
     const repelRadiusSq = repelRadius * repelRadius;
     const grabRadius = 90;
@@ -144,7 +144,7 @@ export function ParticleField() {
         const mdx = nodes[i].x - mouse.x;
         const mdy = nodes[i].y - mouse.y;
         const md = Math.hypot(mdx, mdy);
-        if (md < cursorLink) {
+        if (!coarse && md < cursorLink) {
           ctx.strokeStyle = `rgba(${pal.accent},${(1 - md / cursorLink) * 0.22})`;
           ctx.lineWidth = 1;
           ctx.beginPath();
