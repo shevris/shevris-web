@@ -52,7 +52,11 @@ test("generated PNGs have the intended dimensions", () => {
 });
 
 test("attention animations are finite and reduced motion is respected", () => {
-  const ambientFree = sources.replace(/\.orb-[ab]\s*\{[^}]*\}/g, "");
+  // .text-gradient's 7s gradient-sweep on the hero accent word is the one
+  // intentional looping animation (still reduced-motion aware).
+  const ambientFree = sources
+    .replace(/\.orb-[ab]\s*\{[^}]*\}/g, "")
+    .replace(/\.text-gradient\s*\{[^}]*\}/g, "");
   assert.doesNotMatch(ambientFree, /\binfinite\b|repeat:\s*Infinity/);
   assert.match(read("components/logo-mark.tsx"), /useReducedMotion/);
   assert.match(read("components/reveal.tsx"), /useReducedMotion/);
