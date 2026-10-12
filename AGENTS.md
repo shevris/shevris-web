@@ -10,7 +10,7 @@
 - PNG raster sizes: `favicon-32.png` 32x32, `apple-touch-icon.png` 180x180, `logo.png` 512x512, `og-image.png` 1200x630.
 - `tijarah-mark.png` is the official Tijarah product mark (navy badge, copied from Tijarah-Landing `logo.png`). Used via `next/image` in the hero card and product spotlight — keep it in sync if the Tijarah logo changes.
 - `brand-concepts.html`, `shevris-concept-*.svg`, `shevris-cutline-lockup.svg`, `shevris-concepts-*.png` are local design studies (gitignored). Do not stage or publish them unless explicitly requested.
-- **Maintenance**: `public/notes.xml` (RSS) is hand-synced to the `NOTES` array in `app/notes/page.tsx` — update both when adding entries. When the list grows past ~20 entries, generate the feed at build time instead (e.g. a script rendering `notes.xml` from `NOTES` before `next build`); premature before then.
+- **Maintenance**: `public/notes.xml` (RSS) is hand-synced to the `NOTES` array in `lib/notes.ts` — update both when adding entries. When the list grows past ~20 entries, generate the feed at build time instead (e.g. a script rendering `notes.xml` from `NOTES` before `next build`); premature before then.
 
 ## Toolchain
 

@@ -32,10 +32,19 @@ export function Hero() {
       >
         <div>
           <Reveal>
-            <p className="border-line bg-panel text-muted mb-6 inline-flex items-center gap-2 rounded-full border px-3.5 py-[7px] text-xs font-semibold tracking-[0.08em] uppercase">
-              <span className="bg-brand h-[7px] w-[7px] shrink-0 rounded-full" />
-              Independent software company
-            </p>
+            <a
+              href="https://tijarah.pk"
+              target="_blank"
+              rel="noopener"
+              className="group border-line bg-panel text-muted hover:border-accent mb-6 inline-flex items-center gap-2 rounded-full border px-3.5 py-[7px] text-xs font-semibold tracking-[0.08em] uppercase transition-colors"
+            >
+              <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-[#4ade80]" />
+              Tijarah waitlist now open
+              <ArrowUpRight
+                size={12}
+                className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              />
+            </a>
           </Reveal>
           <StaggeredHeadline />
           <Reveal delay={0.2}>

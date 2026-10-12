@@ -8,6 +8,20 @@
     <language>en</language>
     <atom:link href="https://shevris.com/notes.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Credibility surfaces shipped</title>
+      <link>https://shevris.com/notes#credibility-surfaces</link>
+      <guid isPermaLink="true">https://shevris.com/notes#credibility-surfaces</guid>
+      <pubDate>Mon, 12 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Brand &amp; press kit with logo downloads, a security page with responsible-disclosure policy, an RSS feed for these notes, and per-entry permalinks.</description>
+    </item>
+    <item>
+      <title>Repositioned as a product company</title>
+      <link>https://shevris.com/notes#product-company-positioning</link>
+      <guid isPermaLink="true">https://shevris.com/notes#product-company-positioning</guid>
+      <pubDate>Mon, 12 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Shevris is product-only: the services section is gone, and every call to action now points at Tijarah and the waitlist. We build our own subscription software — not apps on request.</description>
+    </item>
+    <item>
       <title>Touch reaches parity with the cursor</title>
       <link>https://shevris.com/notes#touch-cursor-parity</link>
       <guid isPermaLink="true">https://shevris.com/notes#touch-cursor-parity</guid>
