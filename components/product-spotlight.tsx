@@ -1,5 +1,13 @@
 import Image from "next/image";
-import { ArrowUpRight } from "lucide-react";
+import {
+  ArrowUpRight,
+  BadgeCheck,
+  Gift,
+  Scale,
+  Sparkles,
+  Store,
+  Truck,
+} from "lucide-react";
 import { SpotlightCard } from "./spotlight-card";
 import { Reveal } from "./reveal";
 import {
@@ -10,6 +18,45 @@ import {
   sectionSub,
   sectionWrap,
 } from "./ui";
+
+const FEATURES = [
+  {
+    icon: Store,
+    title: "Wholesale marketplace",
+    desc: "Bulk buying for businesses — including live video negotiation rooms between buyers and suppliers.",
+  },
+  {
+    icon: Scale,
+    title: "Live price comparison",
+    desc: "Real-time prices across markets, compared side by side before you commit to a purchase.",
+  },
+  {
+    icon: BadgeCheck,
+    title: "Verified authenticity",
+    desc: "Certificate-backed proof that products are genuine — verified, not just claimed by the seller.",
+  },
+  {
+    icon: Truck,
+    title: "Smart delivery",
+    desc: "Route-optimized logistics with live tracking and delivery time slots you choose.",
+  },
+  {
+    icon: Sparkles,
+    title: "AI-assisted shopping",
+    desc: "Recommendations and a shopping assistant trained on real marketplace data, not generic guesses.",
+  },
+  {
+    icon: Gift,
+    title: "Rewards & tiers",
+    desc: "Earn on every purchase and unlock tiers the more you shop.",
+  },
+];
+
+const LAUNCH_PATH = [
+  { step: "01", label: "Waitlist", state: "Open now" },
+  { step: "02", label: "Private beta", state: "Waitlist members first" },
+  { step: "03", label: "Public launch", state: "Pakistan first, then beyond" },
+];
 
 export function ProductSpotlight() {
   return (
@@ -53,6 +100,60 @@ export function ProductSpotlight() {
               </span>
             </div>
           </SpotlightCard>
+        </Reveal>
+
+        <Reveal>
+          <div className="mt-14 mb-8 flex flex-wrap items-end justify-between gap-4">
+            <h3 className="text-xl font-bold tracking-[-0.02em]">
+              Inside Tijarah
+            </h3>
+            <span className="text-dim text-[13px]">
+              Six systems, one marketplace — plus seller tools and a POS layer
+              for shops.
+            </span>
+          </div>
+        </Reveal>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map(({ icon: Icon, title, desc }, i) => (
+            <Reveal key={title} delay={Math.min(i * 0.06, 0.3)}>
+              <div className="spotlight-card border-line bg-panel hover:border-accent flex h-full flex-col rounded-2xl border p-6 transition-colors">
+                <div className="bg-accent/10 border-line mb-4 flex h-10 w-10 items-center justify-center rounded-xl border">
+                  <Icon
+                    size={19}
+                    strokeWidth={1.8}
+                    className="text-accent"
+                    aria-hidden="true"
+                  />
+                </div>
+                <h4 className="mb-1.5 text-[15.5px] font-semibold tracking-[-0.01em]">
+                  {title}
+                </h4>
+                <p className="text-muted text-sm leading-relaxed">{desc}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        <Reveal delay={0.15}>
+          <ol className="border-line mt-10 grid gap-4 rounded-2xl border p-6 sm:grid-cols-3 md:p-7">
+            {LAUNCH_PATH.map(({ step, label, state }, i) => (
+              <li key={step} className="flex items-start gap-3.5">
+                <span className="text-accent font-mono text-[13px] font-bold">
+                  {step}
+                </span>
+                <span>
+                  <span className="block text-[14.5px] font-semibold">
+                    {label}
+                  </span>
+                  <span
+                    className={`text-[12.5px] ${i === 0 ? "font-semibold text-[#4ade80]" : "text-dim"}`}
+                  >
+                    {state}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ol>
         </Reveal>
       </div>
     </section>
