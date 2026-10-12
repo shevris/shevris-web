@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useAnimationControls, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, type ReactNode } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useCoarsePointer } from "./use-coarse-pointer";
 
 const HIDDEN = { opacity: 0, y: 18, filter: "blur(8px)" };
@@ -19,27 +19,15 @@ export function Reveal({
   const reduce = useReducedMotion();
   const coarse = useCoarsePointer();
   const ref = useRef<HTMLDivElement>(null);
-  const controls = useAnimationControls();
+  const [armHidden, setArmHidden] = useState(false);
 
   useEffect(() => {
     if (reduce) return;
     const el = ref.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
-    if (r.top < window.innerHeight - 40 && r.bottom > 0) return;
-    controls.set(HIDDEN);
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          controls.start(SHOWN);
-          io.disconnect();
-        }
-      },
-      { rootMargin: "0px 0px -40px 0px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [reduce, controls]);
+    if (r.top >= window.innerHeight - 40 || r.bottom <= 0) setArmHidden(true);
+  }, [reduce]);
 
   return (
     <motion.div
@@ -47,7 +35,9 @@ export function Reveal({
       className={className}
       data-reveal
       initial={false}
-      animate={controls}
+      whileInView={reduce ? undefined : SHOWN}
+      viewport={{ once: true, margin: "-40px" }}
+      style={armHidden ? HIDDEN : undefined}
       transition={{
         duration: 0.8,
         delay,
