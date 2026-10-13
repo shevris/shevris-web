@@ -67,6 +67,107 @@ test("attention animations are finite and reduced motion is respected", () => {
   assert.match(read("components/page-shell.tsx"), /data-reveal/);
 });
 
+test("commerce showcase labels sample data and keeps motion finite", () => {
+  const showcase = read("components/tijarah-features.tsx");
+  assert.match(showcase, /Product concept/);
+  assert.match(showcase, /Illustrative data/);
+  assert.match(showcase, /useReducedMotion/);
+  assert.match(showcase, /aria-pressed/);
+  assert.match(showcase, /aria-live="polite"/);
+  assert.doesNotMatch(
+    showcase,
+    /repeatCount="indefinite"|repeat:\s*Infinity|setInterval/,
+  );
+  assert.doesNotMatch(
+    showcase,
+    /trained on real marketplace data|proof that products are genuine/,
+  );
+});
+
+function commerceModel() {
+  const ts = require("typescript");
+  const output = ts.transpileModule(read("lib/commerce-demo.ts"), {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2020,
+    },
+  });
+  const context = { exports: {} };
+  require("node:vm").runInNewContext(output.outputText, context);
+  return context.exports;
+}
+
+test("negotiation requires a reviewed draft and explicit demo send", () => {
+  const { INITIAL_DEMO, demoReducer, getDemo } = commerceModel();
+  let state = { ...INITIAL_DEMO };
+  assert.equal(getDemo(state).offers[0].delivery, null);
+  assert.equal(demoReducer(state, { type: "use-draft" }).step, 0);
+  state = demoReducer(state, { type: "advance" });
+  state = demoReducer(state, { type: "advance" });
+  assert.equal(state.step, 2);
+  assert.equal(getDemo(state).offers[0].delivery, 600);
+  assert.equal(demoReducer(state, { type: "advance" }).step, 2);
+  state = demoReducer(state, { type: "use-draft" });
+  assert.equal(state.step, 3);
+  assert.equal(getDemo(state).unit, 420);
+  state = demoReducer(state, { type: "advance" });
+  assert.equal(state.step, 4);
+  assert.equal(getDemo(state).unit, 420);
+  state = demoReducer(state, { type: "advance" });
+  assert.equal(state.step, 5);
+  assert.equal(getDemo(state).unit, 412);
+  assert.equal(getDemo(state).subtotal, 41200);
+  assert.equal(getDemo(state).offers[0].total, 41800);
+});
+
+test("all category and quantity scenarios maintain prices and reset dependent state", () => {
+  const { PRODUCTS, INITIAL_DEMO, demoReducer, getDemo } = commerceModel();
+  for (let productIndex = 0; productIndex < PRODUCTS.length; productIndex++) {
+    for (let quantityIndex = 0; quantityIndex < 3; quantityIndex++) {
+      let state = demoReducer(INITIAL_DEMO, {
+        type: "product",
+        index: productIndex,
+      });
+      state = demoReducer(state, { type: "quantity", index: quantityIndex });
+      const model = getDemo(state);
+      assert.equal(
+        model.quantity,
+        PRODUCTS[productIndex].quantities[quantityIndex],
+      );
+      assert.equal(model.subtotal, model.quantity * model.listedUnit);
+      assert.equal(model.offers[0].total, null);
+      for (const offer of model.offers.slice(1)) {
+        assert.equal(offer.total, model.quantity * offer.unit + offer.delivery);
+      }
+      state = {
+        ...state,
+        step: 5,
+        deliveryStep: 2,
+        offerIndex: 2,
+        assistant: "draft",
+      };
+      const reset = demoReducer(state, {
+        type: "quantity",
+        index: (quantityIndex + 1) % 3,
+      });
+      assert.equal(reset.step, 0);
+      assert.equal(reset.deliveryStep, 0);
+      assert.equal(reset.offerIndex, 0);
+      assert.equal(reset.assistant, "explain");
+      const next = demoReducer(state, {
+        type: "product",
+        index: productIndex + 1,
+      });
+      assert.equal(next.step, 0);
+      assert.equal(next.productIndex, (productIndex + 1) % PRODUCTS.length);
+    }
+  }
+  assert.equal(
+    demoReducer(INITIAL_DEMO, { type: "product", index: -1 }).productIndex,
+    PRODUCTS.length - 1,
+  );
+});
+
 test("required files and deployment config exist", () => {
   for (const f of [
     "public/CNAME",
