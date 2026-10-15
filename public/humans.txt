@@ -1,0 +1,8 @@
+/* TEAM */
+Shevris Technologies — an independent software company in Lahore, Pakistan.
+Small team, long horizon. hello@shevris.com
+
+/* SITE */
+Built with Next.js, Tailwind CSS, and restraint.
+Typeface: Inter. Brand system: Cutline.
+Updates: https://shevris.com/notes.xml

@@ -4,6 +4,11 @@ out
 *.tsbuildinfo
 next-env.d.ts
 
+# Local env — .env.example stays tracked
+.env
+.env.*
+!.env.example
+
 # Local design studies — never production assets
 brand-concepts.html
 shevris-concept-*.svg
