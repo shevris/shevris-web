@@ -9,6 +9,7 @@ import { TrustProof } from "@/components/trust-proof";
 import { EngineeringGrid } from "@/components/engineering-grid";
 import { Principles } from "@/components/principles";
 import { LatestNotes } from "@/components/latest-notes";
+import { FounderNote } from "@/components/founder-note";
 import { Faq } from "@/components/faq";
 import { CtaBand } from "@/components/cta-band";
 
@@ -25,6 +26,7 @@ export default function Home() {
       <EngineeringGrid />
       <Principles />
       <LatestNotes />
+      <FounderNote />
       <Faq />
       <CtaBand />
     </PageShell>
