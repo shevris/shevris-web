@@ -11,7 +11,13 @@ export const metadata: Metadata = {
   description:
     "Shevris Technologies is an independent software company in Lahore, Pakistan — building subscription products for commerce, starting with Tijarah, our own marketplace.",
   authors: [{ name: "Shevris Technologies" }],
-  alternates: { canonical: "/" },
+  alternates: {
+    canonical: "/",
+    languages: {
+      "en-PK": "https://shevris.com/",
+      ur: "https://shevris.com/ur",
+    },
+  },
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },

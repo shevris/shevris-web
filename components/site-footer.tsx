@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { EmailCapture } from "./email-capture";
 import { LogoMark, Wordmark } from "./logo-mark";
 
 const EXPLORE = [
@@ -10,6 +11,8 @@ const EXPLORE = [
   { href: "/status", label: "Status" },
   { href: "/brand", label: "Brand & press" },
   { href: "/security", label: "Security" },
+  { href: "/careers", label: "Careers" },
+  { href: "/ur", label: "اردو" },
 ];
 
 const PRODUCT = [
@@ -31,9 +34,13 @@ export function SiteFooter() {
               <LogoMark size={28} animate={false} />
               <Wordmark />
             </Link>
-            <p className="text-dim max-w-[260px] text-[13.5px] leading-relaxed">
+            <p className="text-dim mb-5 max-w-[260px] text-[13.5px] leading-relaxed">
               Independent software company. Software, built deliberately.
             </p>
+            <h4 className="text-dim mb-3 text-xs font-bold tracking-[0.16em] uppercase">
+              Launch updates
+            </h4>
+            <EmailCapture compact />
           </div>
 
           <nav aria-label="Explore">
