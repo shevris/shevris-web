@@ -10,6 +10,24 @@ export type Note = {
 // Keep public/notes.xml (RSS) in sync when adding entries.
 export const NOTES: Note[] = [
   {
+    date: "2026-02-08",
+    system: "shevris.com",
+    type: "New",
+    slug: "prelaunch-surfaces",
+    title: "Pre-launch surfaces: Urdu, careers, updates capture",
+    detail:
+      "A full Urdu RTL landing at /ur, a careers page, on-site launch-updates capture in the footer, hreflang alternates, sitemap lastmod, and launch-gated proof/video components ready to flip on day one.",
+  },
+  {
+    date: "2026-02-08",
+    system: "shevris.com",
+    type: "New",
+    slug: "real-problems-section",
+    title: "Real problems, mapped to mechanisms",
+    detail:
+      "New homepage section naming the documented failures of Pakistani e-commerce — fake parcels, COD scams, stuck remittances — each mapped to the structural fix and linked to the live demo that proves it.",
+  },
+  {
     date: "2026-10-12",
     system: "shevris.com",
     type: "New",

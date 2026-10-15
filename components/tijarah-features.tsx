@@ -19,6 +19,7 @@ import {
   Check,
   ChevronRight,
   Leaf,
+  LockKeyhole,
   MapPin,
   PackageCheck,
   RotateCcw,
@@ -821,10 +822,13 @@ function DeliveryScene({ state, dispatch }: SceneProps) {
     >
       <div className="commerce-card-heading">
         <span className="commerce-eyebrow">
-          <span>03</span> Connected delivery
+          <span>03</span> Protected delivery
         </span>
-        <h4 id="delivery-title">From their door to yours.</h4>
-        <p>A vision for keeping the journey as clear as the purchase.</p>
+        <h4 id="delivery-title">Booked, tracked, and paid — on-platform.</h4>
+        <p>
+          Tijarah books the courier itself, so the seller never needs your phone
+          — and your payment releases only when the parcel actually lands.
+        </p>
       </div>
       <div className="commerce-map-stage">
         <svg
@@ -909,13 +913,21 @@ function DeliveryScene({ state, dispatch }: SceneProps) {
           </span>
           <span>
             <small>
-              Delivery concept · Coordinated by Tijarah · {product.name} ·{" "}
+              Delivery concept · Courier booked by Tijarah · {product.name} ·{" "}
               {quantity} {product.plural}
             </small>
             <strong>{STAGES[stage]}</strong>
           </span>
           <span className="commerce-step-count">0{stage + 1} / 03</span>
         </div>
+      </div>
+      <div className="commerce-delivery-escrow" aria-live="polite">
+        <span className="commerce-escrow-chip">
+          <LockKeyhole size={13} aria-hidden="true" />
+          {stage === 2
+            ? "Payment released — delivery confirmed"
+            : "Payment held in escrow"}
+        </span>
       </div>
       <div className="commerce-delivery-controls">
         <ol aria-label="Delivery stages">
