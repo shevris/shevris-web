@@ -87,7 +87,19 @@ export default function RootLayout({
                 postalCode: "54000",
                 addressCountry: "PK",
               },
-              sameAs: ["https://github.com/shevris"],
+              contactPoint: {
+                "@type": "ContactPoint",
+                telephone: "+92-324-4397194",
+                email: "hello@shevris.com",
+                contactType: "customer service",
+              },
+              sameAs: [
+                "https://github.com/shevris",
+                "https://instagram.com/tijarah.pk_official",
+                "https://www.facebook.com/tijarah.pk.official",
+                "https://x.com/tijarahpk",
+                "https://www.linkedin.com/company/tijarahpk",
+              ],
             }),
           }}
         />
