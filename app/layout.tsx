@@ -96,8 +96,7 @@ export default function RootLayout({
                     email: "hello@shevris.com",
                     contactType: "customer service",
                   },
-                  hasMap:
-                    "https://www.google.com/maps/search/?api=1&query=Shevris+Technologies+433+Gulshan-e-Iqbal+Rd+Lahore",
+                  hasMap: "https://maps.google.com/?cid=13945790140837354658",
                   sameAs: [
                     "https://github.com/shevris",
                     "https://instagram.com/tijarah.pk_official",
