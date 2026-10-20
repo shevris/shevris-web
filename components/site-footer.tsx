@@ -96,7 +96,7 @@ export function SiteFooter() {
               </li>
             </ul>
             <span className="text-dim block text-[13.5px] leading-relaxed">
-              433 Iqbal, Ravi Block Town
+              433 Gulshan-e-Iqbal Rd, Ravi Block Town
               <br />
               Lahore 54000, Pakistan
             </span>
