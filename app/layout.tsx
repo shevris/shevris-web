@@ -73,34 +73,47 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
-              "@type": "Organization",
-              name: "Shevris Technologies",
-              url: "https://shevris.com",
-              logo: "https://shevris.com/logo.png",
-              description:
-                "Independent software company in Lahore, Pakistan — building subscription products for commerce, starting with Tijarah.",
-              email: "hello@shevris.com",
-              address: {
-                "@type": "PostalAddress",
-                streetAddress: "433 Gulshan-e-Iqbal Rd, Ravi Block Town",
-                addressLocality: "Lahore",
-                postalCode: "54000",
-                addressCountry: "PK",
-              },
-              contactPoint: {
-                "@type": "ContactPoint",
-                telephone: "+92-324-4397194",
-                email: "hello@shevris.com",
-                contactType: "customer service",
-              },
-              hasMap:
-                "https://www.google.com/maps/search/?api=1&query=Shevris+Technologies+433+Gulshan-e-Iqbal+Rd+Lahore",
-              sameAs: [
-                "https://github.com/shevris",
-                "https://instagram.com/tijarah.pk_official",
-                "https://www.facebook.com/tijarah.pk.official",
-                "https://x.com/tijarahpk",
-                "https://www.linkedin.com/company/tijarahpk",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "@id": "https://shevris.com/#org",
+                  name: "Shevris Technologies",
+                  url: "https://shevris.com",
+                  logo: "https://shevris.com/logo.png",
+                  description:
+                    "Independent software company in Lahore, Pakistan — building subscription products for commerce, starting with Tijarah.",
+                  email: "hello@shevris.com",
+                  address: {
+                    "@type": "PostalAddress",
+                    streetAddress: "433 Gulshan-e-Iqbal Rd, Ravi Block Town",
+                    addressLocality: "Lahore",
+                    postalCode: "54000",
+                    addressCountry: "PK",
+                  },
+                  contactPoint: {
+                    "@type": "ContactPoint",
+                    telephone: "+92-324-4397194",
+                    email: "hello@shevris.com",
+                    contactType: "customer service",
+                  },
+                  hasMap:
+                    "https://www.google.com/maps/search/?api=1&query=Shevris+Technologies+433+Gulshan-e-Iqbal+Rd+Lahore",
+                  sameAs: [
+                    "https://github.com/shevris",
+                    "https://instagram.com/tijarah.pk_official",
+                    "https://www.facebook.com/tijarah.pk.official",
+                    "https://x.com/tijarahpk",
+                    "https://www.linkedin.com/company/tijarahpk",
+                  ],
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": "https://shevris.com/#website",
+                  name: "Shevris Technologies",
+                  alternateName: "Shevris",
+                  url: "https://shevris.com",
+                  publisher: { "@id": "https://shevris.com/#org" },
+                },
               ],
             }),
           }}
