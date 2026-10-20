@@ -82,7 +82,7 @@ export default function RootLayout({
               email: "hello@shevris.com",
               address: {
                 "@type": "PostalAddress",
-                streetAddress: "433 Iqbal, Ravi Block Town",
+                streetAddress: "433 Gulshan-e-Iqbal Rd, Ravi Block Town",
                 addressLocality: "Lahore",
                 postalCode: "54000",
                 addressCountry: "PK",
@@ -93,6 +93,8 @@ export default function RootLayout({
                 email: "hello@shevris.com",
                 contactType: "customer service",
               },
+              hasMap:
+                "https://www.google.com/maps/search/?api=1&query=Shevris+Technologies+433+Gulshan-e-Iqbal+Rd+Lahore",
               sameAs: [
                 "https://github.com/shevris",
                 "https://instagram.com/tijarah.pk_official",
