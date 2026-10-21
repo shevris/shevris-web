@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useId,
   useReducer,
@@ -8,7 +9,14 @@ import {
   useState,
   type Dispatch,
 } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+} from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
@@ -27,11 +35,15 @@ import {
   ShieldCheck,
   Sparkles,
   Sprout,
+  Timer,
+  TrendingDown,
+  TrendingUp,
   Truck,
 } from "lucide-react";
 import {
   PRODUCTS,
   INITIAL_DEMO,
+  COD_REMITTANCE_DAYS,
   demoReducer,
   getDemo,
   money,
@@ -41,6 +53,52 @@ import {
   type AssistantMode,
 } from "@/lib/commerce-demo";
 import { Reveal } from "./reveal";
+
+/* ---------- motion helpers ---------- */
+
+const TYPING_MS = 1100;
+/** Steps where the other party replies — the only moments a typing indicator
+ *  is honest (a scripted human reply, not generated text). */
+const REPLY_STEPS = new Set([2, 5]);
+
+/** `true` for TYPING_MS after `step` becomes a reply step. Derived in render
+ *  from the last step whose reply has "landed"; the only state write happens
+ *  inside the timeout, so there is one timer per transition and no loop. */
+function useTypingDelay(step: number, enabled: boolean) {
+  const [settled, setSettled] = useState(step);
+  const typing = enabled && REPLY_STEPS.has(step) && settled !== step;
+  useEffect(() => {
+    if (!typing) return;
+    const id = window.setTimeout(() => setSettled(step), TYPING_MS);
+    return () => window.clearTimeout(id);
+  }, [typing, step]);
+  return typing;
+}
+
+/** Reveals `text` word-by-word. Progress is keyed to the text, so a new draft
+ *  restarts and a re-opened one stays complete. Finite by construction. */
+function useTypewriter(text: string, enabled: boolean) {
+  const [typed, setTyped] = useState({ text, n: 0 });
+  const words = text.split(" ");
+  const n = typed.text === text ? typed.n : 0;
+  const done = !enabled || n >= words.length;
+  useEffect(() => {
+    if (done) return;
+    const id = window.setTimeout(
+      () => setTyped({ text, n: n + 1 }),
+      n === 0 ? 60 : 28,
+    );
+    return () => window.clearTimeout(id);
+  }, [done, text, n]);
+  return enabled ? words.slice(0, n).join(" ") : text;
+}
+
+const bubble = {
+  initial: { opacity: 0, y: 8, scale: 0.98 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: -4, transition: { duration: 0.12 } },
+  transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] as const },
+};
 
 /* ---------- themed card art (decorative SVG scenes) ---------- */
 
@@ -318,24 +376,45 @@ const ASSISTANT_MODES: { id: AssistantMode; label: string }[] = [
   { id: "draft", label: "Draft reply" },
 ];
 type SceneProps = { state: DemoState; dispatch: Dispatch<DemoAction> };
+type GuideFlow = "negotiate" | "compare" | "deliver";
+const GUIDE: { id: GuideFlow; n: string; label: string; target: string }[] = [
+  { id: "negotiate", n: "01", label: "Negotiate", target: "studio-title" },
+  { id: "compare", n: "02", label: "Compare", target: "comparison-title" },
+  { id: "deliver", n: "03", label: "Deliver", target: "delivery-title" },
+];
 
-function WholesaleScene({ state, dispatch }: SceneProps) {
+function WholesaleScene({
+  state,
+  dispatch,
+  beacon,
+}: SceneProps & { beacon: boolean }) {
   const {
     product,
     quantity,
+    totalKg,
     unit,
     listedUnit,
     counterUnit,
     subtotal,
+    delivery,
+    marketDelta,
     draft,
     messages,
   } = getDemo(state);
   const reduce = useReducedMotion();
+  const typing = useTypingDelay(state.step, !reduce);
+  const typedDraft = useTypewriter(
+    draft,
+    !reduce && state.assistant === "draft" && state.step >= 2,
+  );
   const log = useRef<HTMLOListElement>(null);
   const assistantHeading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     if (log.current) log.current.scrollTop = log.current.scrollHeight;
-  }, [state.step]);
+  }, [state.step, typing]);
+  const visible = typing
+    ? messages.filter((message) => message.step !== state.step)
+    : messages;
   const actions = [
     "Start example",
     "Show supplier quote",
@@ -351,6 +430,8 @@ function WholesaleScene({ state, dispatch }: SceneProps) {
       assistantHeading.current?.focus();
     } else dispatch({ type: "advance" });
   };
+  const above = marketDelta > 0;
+  const DeltaIcon = above ? TrendingUp : TrendingDown;
   return (
     <article
       className="commerce-card commerce-studio"
@@ -484,9 +565,7 @@ function WholesaleScene({ state, dispatch }: SceneProps) {
               </div>
               <div>
                 <dt>Delivery</dt>
-                <dd>
-                  {state.step >= 2 ? money(product.delivery) : "Not confirmed"}
-                </dd>
+                <dd>{state.step >= 2 ? money(delivery) : "Not confirmed"}</dd>
               </div>
             </dl>
           </div>
@@ -517,40 +596,59 @@ function WholesaleScene({ state, dispatch }: SceneProps) {
                   <MessageSquare size={26} aria-hidden="true" />
                 </span>
                 <h6>
-                  A good deal starts
+                  You’re the buyer.
                   <br />
-                  with a conversation.
+                  Ask for a price.
                 </h6>
                 <p>
-                  Walk through a buyer enquiry, supplier quote, and a
-                  counter-offer you choose to send.
+                  Five short steps: enquire, get a quote, counter, agree — with
+                  a helper beside you.
                 </p>
                 <span>Nothing is sent outside this preview.</span>
               </li>
             )}
-            {messages.map((message) =>
-              message.speaker === "system" ? (
-                <li
-                  key={`${product.id}-system`}
-                  className="studio-message-system"
+            <AnimatePresence initial={false}>
+              {visible.map((message) =>
+                message.speaker === "system" ? (
+                  <motion.li
+                    key={`${product.id}-system`}
+                    className="studio-message-system"
+                    {...(reduce ? {} : bubble)}
+                  >
+                    <ShieldCheck size={14} aria-hidden="true" />
+                    <p>{message.text}</p>
+                  </motion.li>
+                ) : (
+                  <motion.li
+                    key={`${product.id}-${message.step}`}
+                    className={
+                      message.speaker === "Buyer"
+                        ? "studio-message studio-message-buyer"
+                        : "studio-message"
+                    }
+                    {...(reduce ? {} : bubble)}
+                  >
+                    <span>{message.speaker}</span>
+                    <p>{message.text}</p>
+                  </motion.li>
+                ),
+              )}
+              {typing && (
+                <motion.li
+                  key="typing"
+                  className="studio-message studio-typing"
+                  aria-label="Supplier A is typing"
+                  {...bubble}
                 >
-                  <ShieldCheck size={14} aria-hidden="true" />
-                  <p>{message.text}</p>
-                </li>
-              ) : (
-                <li
-                  key={`${product.id}-${message.step}`}
-                  className={
-                    message.speaker === "Buyer"
-                      ? "studio-message studio-message-buyer"
-                      : "studio-message"
-                  }
-                >
-                  <span>{message.speaker}</span>
-                  <p>{message.text}</p>
-                </li>
-              ),
-            )}
+                  <span>Supplier A</span>
+                  <p aria-hidden="true">
+                    <i />
+                    <i />
+                    <i />
+                  </p>
+                </motion.li>
+              )}
+            </AnimatePresence>
           </ol>
           {state.step === 3 && (
             <div className="studio-draft">
@@ -565,7 +663,17 @@ function WholesaleScene({ state, dispatch }: SceneProps) {
             </div>
           )}
           <div className="studio-conversation-actions">
-            <button type="button" className="studio-primary" onClick={next}>
+            <button
+              type="button"
+              className={
+                beacon && state.step === 0
+                  ? "studio-primary is-beacon"
+                  : "studio-primary"
+              }
+              onClick={next}
+              disabled={typing}
+              aria-disabled={typing}
+            >
               {actions[state.step]}
               {state.step === 5 ? (
                 <RotateCcw size={15} aria-hidden="true" />
@@ -625,14 +733,34 @@ function WholesaleScene({ state, dispatch }: SceneProps) {
             ) : state.assistant === "explain" ? (
               <>
                 <span className="studio-advice-label">THE OFFER, UNPACKED</span>
-                <h6>{money(unit * quantity + product.delivery)}</h6>
+                <h6>{money(unit * quantity + delivery)}</h6>
                 <p>
                   {quantity} {product.plural} × {money(unit)}, plus{" "}
-                  {money(product.delivery)} delivery.{" "}
+                  {money(delivery)} delivery for about {totalKg} kg.{" "}
                   {state.step === 5
                     ? "This reflects the demo agreement."
                     : "This is the supplier’s quantity-tier quote, not a negotiated discount."}
                 </p>
+                <div
+                  className={
+                    above
+                      ? "studio-market studio-market-above"
+                      : "studio-market"
+                  }
+                >
+                  <DeltaIcon size={14} aria-hidden="true" />
+                  <span>
+                    <strong>
+                      {marketDelta === 0
+                        ? "In line with"
+                        : `${Math.abs(marketDelta)}% ${above ? "above" : "below"}`}{" "}
+                      the reference range
+                    </strong>
+                    {money(product.market.low)}–{money(product.market.high)} per{" "}
+                    {product.market.per} · {product.market.source} ·{" "}
+                    {product.market.asOf}
+                  </span>
+                </div>
                 <div className="studio-insight">
                   <Check size={14} aria-hidden="true" />
                   <span>
@@ -673,7 +801,14 @@ function WholesaleScene({ state, dispatch }: SceneProps) {
                   Your voice.
                   <br />A starting point.
                 </h6>
-                <blockquote>{draft}</blockquote>
+                <blockquote aria-label={draft}>
+                  <span aria-hidden="true">
+                    {typedDraft}
+                    {typedDraft.length < draft.length && (
+                      <i className="studio-caret" />
+                    )}
+                  </span>
+                </blockquote>
                 <p>
                   Review before using. This sample asks for terms; it does not
                   accept a deal for you.
@@ -721,9 +856,15 @@ function WholesaleScene({ state, dispatch }: SceneProps) {
 }
 
 function ComparisonScene({ state, dispatch }: SceneProps) {
-  const { product, quantity, offers } = getDemo(state);
+  const { product, quantity, offers, bestTotal } = getDemo(state);
   const selected = state.offerIndex;
   const offer = offers[selected];
+  const reduce = useReducedMotion();
+  const maxTotal = Math.max(
+    ...offers.map((item) => item.total ?? 0),
+    bestTotal ?? 0,
+    1,
+  );
   return (
     <article
       className="commerce-card commerce-comparison"
@@ -753,30 +894,55 @@ function ComparisonScene({ state, dispatch }: SceneProps) {
         </div>
         <div className="commerce-table-label">
           <span>Example supplier</span>
-          <span>Per {product.unit}</span>
+          <span>Per {product.unit} · landed</span>
         </div>
         <div
           className="commerce-offers"
           role="group"
           aria-label="Compare sample supplier offers"
         >
-          {offers.map((item, i) => (
-            <button
-              type="button"
-              key={item.name}
-              aria-pressed={selected === i}
-              onClick={() => dispatch({ type: "offer", index: i })}
-            >
-              <span className="commerce-radio" aria-hidden="true">
-                {selected === i && <Check size={12} />}
-              </span>
-              <span>
-                <strong>{item.name}</strong>
-                <small>{item.note}</small>
-              </span>
-              <span className="commerce-unit">{money(item.unit)}</span>
-            </button>
-          ))}
+          {offers.map((item, i) => {
+            const best = item.total !== null && item.total === bestTotal;
+            return (
+              <button
+                type="button"
+                key={item.name}
+                aria-pressed={selected === i}
+                onClick={() => dispatch({ type: "offer", index: i })}
+              >
+                <span className="commerce-radio" aria-hidden="true">
+                  {selected === i && <Check size={12} />}
+                </span>
+                <span className="commerce-offer-body">
+                  <strong>
+                    {item.name}
+                    {best && (
+                      <em className="commerce-best">Lowest landed cost</em>
+                    )}
+                  </strong>
+                  <small>{item.note}</small>
+                  <span className="commerce-bar" aria-hidden="true">
+                    <motion.i
+                      initial={false}
+                      animate={{
+                        scaleX: item.total === null ? 0 : item.total / maxTotal,
+                      }}
+                      transition={{
+                        duration: reduce ? 0 : 0.6,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                    />
+                  </span>
+                </span>
+                <span className="commerce-unit">
+                  {money(item.unit)}
+                  <small>
+                    {item.total === null ? "awaiting quote" : money(item.total)}
+                  </small>
+                </span>
+              </button>
+            );
+          })}
         </div>
         <div
           className="commerce-comparison-total"
@@ -805,16 +971,37 @@ function ComparisonScene({ state, dispatch }: SceneProps) {
       </div>
       <p className="commerce-card-caption">
         Sample offers for your selected product and quantity. Supplier A follows
-        the conversation above.
+        the conversation above — the cheapest unit price isn’t always the
+        cheapest delivered order.
       </p>
     </article>
   );
 }
 
+const ROUTE =
+  "M80 162 L177 162 Q190 162 190 148 L190 103 Q190 89 205 89 L289 89 Q303 89 303 74 L303 52 L410 52";
+const ROUTE_PROGRESS = [0.04, 0.53, 1];
+
 function DeliveryScene({ state, dispatch }: SceneProps) {
   const { product, quantity } = getDemo(state);
   const stage = state.deliveryStep;
   const reduce = useReducedMotion();
+  const routeRef = useRef<SVGPathElement>(null);
+  const progress = useMotionValue(ROUTE_PROGRESS[0]);
+  const pointAt = useCallback((p: number, axis: "x" | "y") => {
+    const path = routeRef.current;
+    if (!path) return axis === "x" ? 80 : 162;
+    return path.getPointAtLength(p * path.getTotalLength())[axis];
+  }, []);
+  const cx = useTransform(progress, (p) => pointAt(p, "x"));
+  const cy = useTransform(progress, (p) => pointAt(p, "y"));
+  useEffect(() => {
+    const controls = animate(progress, ROUTE_PROGRESS[stage], {
+      duration: reduce ? 0 : 0.85,
+      ease: "easeInOut",
+    });
+    return () => controls.stop();
+  }, [stage, reduce, progress]);
   return (
     <article
       className="commerce-card commerce-delivery"
@@ -863,7 +1050,8 @@ function DeliveryScene({ state, dispatch }: SceneProps) {
             strokeWidth="32"
           />
           <path
-            d="M80 162 L177 162 Q190 162 190 148 L190 103 Q190 89 205 89 L289 89 Q303 89 303 74 L303 52 L410 52"
+            ref={routeRef}
+            d={ROUTE}
             fill="none"
             stroke="var(--commerce-route-track)"
             strokeWidth="7"
@@ -871,9 +1059,9 @@ function DeliveryScene({ state, dispatch }: SceneProps) {
           />
           <motion.path
             initial={false}
-            animate={{ pathLength: [0.04, 0.53, 1][stage] }}
+            animate={{ pathLength: ROUTE_PROGRESS[stage] }}
             transition={{ duration: reduce ? 0 : 0.85, ease: "easeInOut" }}
-            d="M80 162 L177 162 Q190 162 190 148 L190 103 Q190 89 205 89 L289 89 Q303 89 303 74 L303 52 L410 52"
+            d={ROUTE}
             fill="none"
             stroke="#5143d9"
             strokeWidth="4"
@@ -895,6 +1083,18 @@ function DeliveryScene({ state, dispatch }: SceneProps) {
             stroke="#5143d9"
             strokeWidth="3"
           />
+          <motion.g style={{ x: cx, y: cy }}>
+            <circle r="13" fill="#5143d9" opacity="0.18" />
+            <circle r="9" fill="#fff" stroke="#5143d9" strokeWidth="2.5" />
+            <Truck
+              x={-6}
+              y={-6}
+              width={12}
+              height={12}
+              color="#5143d9"
+              strokeWidth={2.4}
+            />
+          </motion.g>
         </svg>
         <span className="commerce-map-label">
           <MapPin size={13} aria-hidden="true" /> Illustrative route
@@ -927,6 +1127,12 @@ function DeliveryScene({ state, dispatch }: SceneProps) {
           {stage === 2
             ? "Payment released — delivery confirmed"
             : "Payment held in escrow"}
+        </span>
+        <span className="commerce-remit-chip">
+          <Timer size={13} aria-hidden="true" />
+          {stage === 2
+            ? "Seller paid on confirmation — not after a courier remittance cycle"
+            : `Typical courier COD remittance: ${COD_REMITTANCE_DAYS}`}
         </span>
       </div>
       <div className="commerce-delivery-controls">
@@ -1105,8 +1311,89 @@ function SupportingScenes({ state }: { state: DemoState }) {
   );
 }
 
+function DemoGuide({
+  done,
+  active,
+}: {
+  done: Record<GuideFlow, boolean>;
+  active: GuideFlow;
+}) {
+  const count = Object.values(done).filter(Boolean).length;
+  const jump = (target: string) => {
+    const el = document.getElementById(target);
+    el?.closest("article")?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      block: "start",
+    });
+    el?.focus?.();
+  };
+  return (
+    <nav className="commerce-guide" aria-label="Demo flows">
+      <span className="commerce-guide-lead">
+        <strong>Take the tour</strong>
+        <small>3 short flows · about 2 minutes · nothing is real</small>
+      </span>
+      <ol>
+        {GUIDE.map((flow) => (
+          <li key={flow.id}>
+            <button
+              type="button"
+              onClick={() => jump(flow.target)}
+              aria-current={active === flow.id ? "step" : undefined}
+              data-done={done[flow.id] || undefined}
+            >
+              <span aria-hidden="true">
+                {done[flow.id] ? <Check size={11} /> : flow.n}
+              </span>
+              {flow.label}
+            </button>
+          </li>
+        ))}
+      </ol>
+      <span className="commerce-guide-count" aria-live="polite">
+        {count} / 3 done
+      </span>
+    </nav>
+  );
+}
+
+type Shell = {
+  demo: DemoState;
+  done: Record<GuideFlow, boolean>;
+  interacted: boolean;
+};
+const INITIAL_SHELL: Shell = {
+  demo: INITIAL_DEMO,
+  done: { negotiate: false, compare: false, deliver: false },
+  interacted: false,
+};
+/** Wraps the demo reducer so tour progress is derived from the same
+ *  transition — no effects watching state after the fact. */
+function shellReducer(shell: Shell, action: DemoAction): Shell {
+  const demo = demoReducer(shell.demo, action);
+  return {
+    demo,
+    interacted: true,
+    done: {
+      negotiate: shell.done.negotiate || demo.step === 5,
+      compare: shell.done.compare || action.type === "offer",
+      deliver: shell.done.deliver || demo.deliveryStep === 2,
+    },
+  };
+}
+
 export function InsideTijarah() {
-  const [state, dispatch] = useReducer(demoReducer, INITIAL_DEMO);
+  const [{ demo: state, done, interacted }, dispatch] = useReducer(
+    shellReducer,
+    INITIAL_SHELL,
+  );
+  const active: GuideFlow = !done.negotiate
+    ? "negotiate"
+    : !done.compare
+      ? "compare"
+      : "deliver";
   return (
     <div id="inside-tijarah" className="commerce-showcase">
       <Reveal>
@@ -1131,7 +1418,14 @@ export function InsideTijarah() {
         </div>
       </Reveal>
       <Reveal>
-        <WholesaleScene state={state} dispatch={dispatch} />
+        <DemoGuide done={done} active={active} />
+      </Reveal>
+      <Reveal>
+        <WholesaleScene
+          state={state}
+          dispatch={dispatch}
+          beacon={!interacted}
+        />
       </Reveal>
       <div className="commerce-main-grid">
         <Reveal>

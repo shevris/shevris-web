@@ -105,19 +105,63 @@ test("negotiation requires a reviewed draft and explicit demo send", () => {
   state = demoReducer(state, { type: "advance" });
   state = demoReducer(state, { type: "advance" });
   assert.equal(state.step, 2);
-  assert.equal(getDemo(state).offers[0].delivery, 600);
+  // 100 × 1 kg packs, Lahore → Karachi economy: 300 + 18 × 100 = 2,100
+  assert.equal(getDemo(state).offers[0].delivery, 2100);
   assert.equal(demoReducer(state, { type: "advance" }).step, 2);
   state = demoReducer(state, { type: "use-draft" });
   assert.equal(state.step, 3);
-  assert.equal(getDemo(state).unit, 420);
+  assert.equal(getDemo(state).unit, 365);
   state = demoReducer(state, { type: "advance" });
   assert.equal(state.step, 4);
-  assert.equal(getDemo(state).unit, 420);
+  assert.equal(getDemo(state).unit, 365);
   state = demoReducer(state, { type: "advance" });
   assert.equal(state.step, 5);
-  assert.equal(getDemo(state).unit, 412);
-  assert.equal(getDemo(state).subtotal, 41200);
-  assert.equal(getDemo(state).offers[0].total, 41800);
+  assert.equal(getDemo(state).unit, 358);
+  assert.equal(getDemo(state).subtotal, 35800);
+  assert.equal(getDemo(state).offers[0].total, 37900);
+  // After negotiating, Supplier A wins on landed cost even though Supplier C
+  // has the lower unit price — the lesson the comparison card teaches.
+  assert.equal(getDemo(state).bestTotal, 37900);
+});
+
+test("demo prices sit inside real-world reference ranges and freight scales with weight", () => {
+  const { PRODUCTS, COURIERS, freight, marketDelta } = commerceModel();
+  for (const product of PRODUCTS) {
+    const mid = (product.market.low + product.market.high) / 2;
+    for (const rate of product.rates) {
+      // Quotes stay within ±15% of the reference mid-point — believable, not
+      // a strawman that makes negotiation look trivial.
+      assert.ok(Math.abs(marketDelta(product, rate)) <= 15, product.id);
+      assert.ok(rate > mid * 0.85 && rate < mid * 1.15, product.id);
+    }
+    const [small, , large] = product.quantities;
+    assert.ok(
+      freight(product, large, "intercity") >
+        freight(product, small, "intercity"),
+      `${product.id} freight should grow with quantity`,
+    );
+    assert.equal(freight(product, small, "intercity") % 50, 0);
+  }
+  // Rice is anchored to Akbari Mandi super-basmati wholesale (PKR 340–370/kg).
+  const rice = PRODUCTS[0];
+  assert.equal(rice.market.low, 340);
+  assert.equal(rice.market.high, 370);
+  assert.match(rice.market.source, /Akbari Mandi/);
+  assert.ok(COURIERS.intercity.perKg < COURIERS.overland.perKg);
+});
+
+test("conversation motion is finite and honest", () => {
+  const showcase = read("components/tijarah-features.tsx");
+  // Typing indicator only for scripted human replies, never the assistant.
+  assert.match(showcase, /REPLY_STEPS = new Set\(\[2, 5\]\)/);
+  assert.match(showcase, /useTypingDelay\(state\.step, !reduce\)/);
+  assert.match(showcase, /disabled=\{typing\}/);
+  // Guided tour strip + one-time beacon.
+  assert.match(showcase, /aria-label="Demo flows"/);
+  assert.match(showcase, /is-beacon/);
+  const css = read("app/globals.css");
+  assert.match(css, /animation: studio-beacon 1\.4s ease-out 3;/);
+  assert.match(css, /animation: studio-dot 0\.36s ease-in-out 3 alternate;/);
 });
 
 test("all category and quantity scenarios maintain prices and reset dependent state", () => {

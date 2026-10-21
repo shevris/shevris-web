@@ -1139,8 +1139,21 @@ html {
 }
 .commerce-delivery-escrow {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  gap: 8px;
   padding: 0 28px;
+}
+.commerce-remit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px dashed var(--line);
+  border-radius: 999px;
+  padding: 7px 14px;
+  color: var(--dim);
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
 }
 .commerce-escrow-chip {
   display: inline-flex;
@@ -1562,7 +1575,267 @@ html {
   }
 }
 
+/* ---------- demo guidance + conversation motion ---------- */
+
+.commerce-guide {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  padding: 14px 18px;
+}
+.commerce-guide-lead {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-right: auto;
+}
+.commerce-guide-lead strong {
+  font-size: 13px;
+  font-weight: 620;
+  letter-spacing: -0.01em;
+}
+.commerce-guide-lead small {
+  color: var(--dim);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+.commerce-guide ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.commerce-guide ol button {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 14px 0 6px;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 160ms,
+    color 160ms,
+    background-color 160ms;
+}
+.commerce-guide ol button > span {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--commerce-inset);
+  color: var(--dim);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.commerce-guide ol button:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.commerce-guide ol button[aria-current="step"] {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.commerce-guide ol button[aria-current="step"] > span {
+  background: var(--brand-solid);
+  color: #fff;
+}
+.commerce-guide ol button[data-done] > span {
+  background: #1f9d6a;
+  color: #fff;
+}
+.commerce-guide-count {
+  color: var(--dim);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scroll-target highlight when arriving from a "See it in the demo" link:
+   two gentle pulses, then still. */
+.commerce-card:has(:target) {
+  animation: commerce-target 1.2s ease-out 2;
+}
+@keyframes commerce-target {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand-solid) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 14px transparent;
+  }
+}
+
+/* One-time beacon on the first primary action: three pulses, then rest. */
+.studio-primary.is-beacon {
+  position: relative;
+}
+.studio-primary.is-beacon::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border: 2px solid var(--brand-solid);
+  border-radius: 15px;
+  animation: studio-beacon 1.4s ease-out 3;
+  pointer-events: none;
+}
+@keyframes studio-beacon {
+  0% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+}
+.studio-primary:disabled {
+  cursor: progress;
+  filter: saturate(0.7);
+}
+
+/* Typing indicator sits where the reply will land, so nothing shifts. Each
+   dot bounces three times (~TYPING_MS), then the bubble is replaced. */
+.studio-typing > p {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 19px;
+}
+.studio-typing i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dim);
+  animation: studio-dot 0.36s ease-in-out 3 alternate;
+}
+.studio-typing i:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.studio-typing i:nth-child(3) {
+  animation-delay: 0.24s;
+}
+@keyframes studio-dot {
+  from {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+.studio-caret {
+  display: inline-block;
+  width: 1.5px;
+  height: 0.95em;
+  margin-left: 2px;
+  vertical-align: -0.12em;
+  background: var(--accent);
+}
+
+/* Market reference chip inside the assistant's "Explain" view. */
+.studio-market {
+  display: flex;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  padding: 9px 11px;
+}
+.studio-market > svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #1f9d6a;
+}
+.studio-market-above > svg {
+  color: #c9742a;
+}
+.studio-market strong {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 620;
+}
+.studio-market span {
+  color: var(--dim);
+  font-size: 9.5px;
+  line-height: 1.5;
+}
+
+/* Landed-cost bars in the comparison table. */
+.commerce-offer-body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+.commerce-best {
+  display: inline-block;
+  margin-left: 8px;
+  border-radius: 999px;
+  background: #1f9d6a1f;
+  padding: 2px 7px;
+  color: #1f9d6a;
+  font-size: 8.5px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+.commerce-bar {
+  display: block;
+  height: 4px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--commerce-inset);
+}
+.commerce-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--brand-solid);
+  transform-origin: left center;
+}
+.commerce-offers button[aria-pressed="true"] .commerce-bar i {
+  filter: brightness(1.1);
+}
+.commerce-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.commerce-unit small {
+  margin-top: 2px;
+  color: var(--dim);
+  font-size: 9.5px;
+  font-weight: 500;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .commerce-card:has(:target),
+  .studio-primary.is-beacon::after,
+  .studio-typing i {
+    animation: none;
+  }
+  .studio-typing i {
+    opacity: 0.7;
+  }
   .commerce-showcase *,
   .commerce-showcase *::before {
     transition: none !important;
