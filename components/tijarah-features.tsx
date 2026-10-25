@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import {
   PRODUCTS,
+  catalogFor,
   INITIAL_DEMO,
   COD_REMITTANCE_DAYS,
   demoReducer,
@@ -370,6 +371,31 @@ const NEGOTIATION_STEPS = [
   "Counter-offer sent in demo",
   "Example terms agreed",
 ];
+/** Mode-aware chrome for the demo — the scenes are shared; what differs is
+ *  who the counterparty is and what the middle step means. */
+const MODE_COPY = {
+  b2b: {
+    label: "Wholesale (B2B)",
+    steps: NEGOTIATION_STEPS,
+    other: "Supplier A",
+    pairLabel: "Buyer + Supplier A",
+    quantityUnit: "MOQ-tier quote",
+  },
+  b2c: {
+    label: "Everyday shopping (B2C)",
+    steps: [
+      "Ready to explore",
+      "Your enquiry",
+      "Seller's answer",
+      "Protected checkout",
+      "Order placed to escrow",
+      "Escrow holds until delivery",
+    ],
+    other: "Seller A",
+    pairLabel: "You + Seller A",
+    quantityUnit: "Single item",
+  },
+} as const;
 const ASSISTANT_MODES: { id: AssistantMode; label: string }[] = [
   { id: "explain", label: "Explain" },
   { id: "counter", label: "Counter-offer" },
@@ -415,14 +441,26 @@ function WholesaleScene({
   const visible = typing
     ? messages.filter((message) => message.step !== state.step)
     : messages;
-  const actions = [
-    "Start example",
-    "Show supplier quote",
-    "Review assistant draft",
-    "Send reply in demo",
-    "Show supplier response",
-    "Replay conversation",
-  ];
+  const copy = MODE_COPY[state.mode];
+  const catalog = catalogFor(state.mode);
+  const actions =
+    state.mode === "b2c"
+      ? [
+          "Start example",
+          "Show seller's answer",
+          "Review protected checkout",
+          "Place order into escrow",
+          "Show seller confirmation",
+          "Replay order",
+        ]
+      : [
+          "Start example",
+          "Show supplier quote",
+          "Review assistant draft",
+          "Send reply in demo",
+          "Show supplier response",
+          "Replay conversation",
+        ];
   const next = () => {
     if (state.step === 5) dispatch({ type: "restart" });
     else if (state.step === 2) {
@@ -458,7 +496,7 @@ function WholesaleScene({
           role="group"
           aria-label="Choose a product story"
         >
-          {PRODUCTS.map((item, i) => {
+          {catalog.map((item, i) => {
             const Icon = i === 0 ? Leaf : i === 1 ? Shirt : Coffee;
             return (
               <button
@@ -499,15 +537,15 @@ function WholesaleScene({
         </div>
       </div>
       <p className="sr-only" role="status">
-        {product.category}, {state.productIndex + 1} of {PRODUCTS.length}.{" "}
-        {quantity} {product.plural}. {NEGOTIATION_STEPS[state.step]}.
+        {product.category}, {state.productIndex + 1} of {catalog.length}.{" "}
+        {quantity} {product.plural}. {copy.steps[state.step]}.
       </p>
       <div
         id="studio-story"
         className="studio-panels"
         role="group"
         aria-roledescription="slide"
-        aria-label={`${product.category}: ${product.name}, ${state.productIndex + 1} of ${PRODUCTS.length}`}
+        aria-label={`${product.category}: ${product.name}, ${state.productIndex + 1} of ${catalog.length}`}
       >
         <div className={`studio-product studio-product-${product.id}`}>
           <div className="studio-artwork">
@@ -576,11 +614,11 @@ function WholesaleScene({
             <MessageSquare size={17} aria-hidden="true" />
             <div>
               <h5>At the negotiation table</h5>
-              <span>Buyer + Supplier A · Scripted example</span>
+              <span>{copy.pairLabel} · Scripted example</span>
             </div>
           </div>
           <div className="studio-progress">
-            <span>{NEGOTIATION_STEPS[state.step]}</span>
+            <span>{copy.steps[state.step]}</span>
             <span>{state.step} / 5</span>
           </div>
           <ol
@@ -637,10 +675,10 @@ function WholesaleScene({
                 <motion.li
                   key="typing"
                   className="studio-message studio-typing"
-                  aria-label="Supplier A is typing"
+                  aria-label={`${copy.other} is typing`}
                   {...bubble}
                 >
-                  <span>Supplier A</span>
+                  <span>{copy.other}</span>
                   <p aria-hidden="true">
                     <i />
                     <i />
@@ -970,9 +1008,9 @@ function ComparisonScene({ state, dispatch }: SceneProps) {
         </div>
       </div>
       <p className="commerce-card-caption">
-        Sample offers for your selected product and quantity. Supplier A follows
-        the conversation above — the cheapest unit price isn’t always the
-        cheapest delivered order.
+        Sample offers for your selected product and quantity.{" "}
+        {MODE_COPY[state.mode].other} follows the conversation above — the
+        cheapest unit price isn’t always the cheapest delivered order.
       </p>
     </article>
   );
@@ -1413,6 +1451,24 @@ export function InsideTijarah() {
             <span className="commerce-concept-label">
               Product concept · Illustrative data
             </span>
+            <div
+              className="commerce-mode"
+              role="tablist"
+              aria-label="Demo audience"
+            >
+              {(["b2b", "b2c"] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  role="tab"
+                  aria-selected={state.mode === m}
+                  className={state.mode === m ? "is-active" : ""}
+                  onClick={() => dispatch({ type: "mode", mode: m })}
+                >
+                  {MODE_COPY[m].label}
+                </button>
+              ))}
+            </div>
             <small>In development. Features and availability may change.</small>
           </div>
         </div>
@@ -1439,6 +1495,35 @@ export function InsideTijarah() {
         key={`${state.productIndex}-${state.quantityIndex}`}
         state={state}
       />
+      <Reveal>
+        <div className="commerce-card ai-receipt" role="note">
+          <div className="ai-receipt-head">
+            <span className="commerce-eyebrow">Tijarah AI — learning</span>
+            <strong>Learns prices, not people.</strong>
+            <span dir="rtl" lang="ur" className="ai-receipt-ur">
+              AI صرف بازار کا حساب سیکھتا ہے — آپ کی باتیں، نام یا ادائیگی نہیں۔
+            </span>
+          </div>
+          <div className="ai-receipt-grid" aria-label="What Tijarah AI sees">
+            <span>
+              📈 Market patterns <em>yes</em>
+            </span>
+            <span>
+              💬 Your messages <em>never</em>
+            </span>
+            <span>
+              🪪 Your name <em>never</em>
+            </span>
+            <span>
+              💳 Payment details <em>never</em>
+            </span>
+          </div>
+          <small>
+            Founding Members teach it first — and every member gets a receipt
+            page showing exactly what the AI holds about them.
+          </small>
+        </div>
+      </Reveal>
       <Reveal>
         <div className="commerce-closing">
           <span>
