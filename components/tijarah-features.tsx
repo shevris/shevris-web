@@ -1496,6 +1496,35 @@ export function InsideTijarah() {
         state={state}
       />
       <Reveal>
+        <div className="commerce-card ai-receipt" role="note">
+          <div className="ai-receipt-head">
+            <span className="commerce-eyebrow">Tijarah AI — learning</span>
+            <strong>Learns prices, not people.</strong>
+            <span dir="rtl" lang="ur" className="ai-receipt-ur">
+              AI صرف بازار کا حساب سیکھتا ہے — آپ کی باتیں، نام یا ادائیگی نہیں۔
+            </span>
+          </div>
+          <div className="ai-receipt-grid" aria-label="What Tijarah AI sees">
+            <span>
+              📈 Market patterns <em>yes</em>
+            </span>
+            <span>
+              💬 Your messages <em>never</em>
+            </span>
+            <span>
+              🪪 Your name <em>never</em>
+            </span>
+            <span>
+              💳 Payment details <em>never</em>
+            </span>
+          </div>
+          <small>
+            Founding Members teach it first — and every member gets a receipt
+            page showing exactly what the AI holds about them.
+          </small>
+        </div>
+      </Reveal>
+      <Reveal>
         <div className="commerce-closing">
           <span>
             This is a preview of the vision. Be part of what comes next.
