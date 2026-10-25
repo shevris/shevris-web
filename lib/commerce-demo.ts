@@ -77,9 +77,83 @@ export const COURIERS = {
 
 export const COD_REMITTANCE_DAYS = "7–14 working days";
 
-export type Product = (typeof PRODUCTS)[number];
+/** Everyday-shopping catalogue (B2C) — single units, retail prices. Same
+ *  scene skeleton as wholesale; the trade-off scene becomes seller
+ *  comparison and the negotiation becomes escrow-protected checkout. */
+export const B2C_PRODUCTS = [
+  {
+    id: "earbuds",
+    category: "Electronics",
+    name: "Wireless earbuds",
+    detail: "Bluetooth 5.3 · charging case",
+    unit: "piece",
+    plural: "pieces",
+    weightKg: 0.1,
+    quantities: [1],
+    rates: [2800],
+    premium: 300,
+    record: "WE-101",
+    caption: "Small tech, honestly listed.",
+    question: "Is this the sealed original with warranty?",
+    market: {
+      low: 2400,
+      high: 3200,
+      per: "piece",
+      source: "Indicative range — budget TWS earbuds",
+      asOf: "2026",
+    },
+  },
+  {
+    id: "sneakers",
+    category: "Footwear",
+    name: "Running shoes",
+    detail: "Unisex · breathable knit",
+    unit: "pair",
+    plural: "pairs",
+    weightKg: 0.8,
+    quantities: [1],
+    rates: [4500],
+    premium: 500,
+    record: "RS-102",
+    caption: "Everyday wear, verified sellers.",
+    question: "Please confirm the size and original box.",
+    market: {
+      low: 3800,
+      high: 5500,
+      per: "pair",
+      source: "Indicative range — knit running shoes",
+      asOf: "2026",
+    },
+  },
+  {
+    id: "kettle",
+    category: "Home appliances",
+    name: "Electric kettle",
+    detail: "1.7 L · stainless steel",
+    unit: "piece",
+    plural: "pieces",
+    weightKg: 1.2,
+    quantities: [1],
+    rates: [3900],
+    premium: 350,
+    record: "EK-103",
+    caption: "Household essentials, protected checkout.",
+    question: "Please confirm the plug type and warranty card.",
+    market: {
+      low: 3300,
+      high: 4600,
+      per: "piece",
+      source: "Indicative range — 1.7 L steel kettles",
+      asOf: "2026",
+    },
+  },
+] as const;
+
+export type DemoMode = "b2b" | "b2c";
+export type Product = (typeof PRODUCTS)[number] | (typeof B2C_PRODUCTS)[number];
 export type AssistantMode = "explain" | "counter" | "draft";
 export type DemoState = {
+  mode: DemoMode;
   productIndex: number;
   quantityIndex: number;
   step: number;
@@ -90,11 +164,13 @@ export type DemoState = {
 export type DemoAction =
   | { type: "product" | "quantity" | "offer"; index: number }
   | { type: "assistant"; mode: AssistantMode }
+  | { type: "mode"; mode: DemoMode }
   | {
       type: "advance" | "use-draft" | "discard-draft" | "restart" | "delivery";
     };
 
 export const INITIAL_DEMO: DemoState = {
+  mode: "b2b",
   productIndex: 0,
   quantityIndex: 1,
   step: 0,
@@ -103,18 +179,26 @@ export const INITIAL_DEMO: DemoState = {
   assistant: "explain",
 };
 
+export const catalogFor = (mode: DemoMode) =>
+  mode === "b2c" ? B2C_PRODUCTS : PRODUCTS;
+
 export function demoReducer(state: DemoState, action: DemoAction): DemoState {
   switch (action.type) {
+    case "mode":
+      return { ...INITIAL_DEMO, mode: action.mode };
     case "product":
       return {
         ...INITIAL_DEMO,
+        mode: state.mode,
         productIndex:
-          ((action.index % PRODUCTS.length) + PRODUCTS.length) %
-          PRODUCTS.length,
+          ((action.index % catalogFor(state.mode).length) +
+            catalogFor(state.mode).length) %
+          catalogFor(state.mode).length,
       };
     case "quantity":
       return {
         ...INITIAL_DEMO,
+        mode: state.mode,
         productIndex: state.productIndex,
         quantityIndex: Math.max(0, Math.min(2, action.index)),
       };
@@ -139,6 +223,7 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
     case "restart":
       return {
         ...INITIAL_DEMO,
+        mode: state.mode,
         productIndex: state.productIndex,
         quantityIndex: state.quantityIndex,
       };
@@ -167,16 +252,23 @@ export function marketDelta(product: Product, unit: number) {
 }
 
 export function getDemo(state: DemoState) {
-  const product = PRODUCTS[state.productIndex];
-  const quantity = product.quantities[state.quantityIndex];
-  const listedUnit = product.rates[state.quantityIndex];
+  const isB2c = state.mode === "b2c";
+  const catalog = catalogFor(state.mode);
+  const product = catalog[state.productIndex];
+  const quantityIndex = Math.min(
+    state.quantityIndex,
+    product.quantities.length - 1,
+  );
+  const quantity = product.quantities[quantityIndex];
+  const listedUnit = product.rates[quantityIndex];
   const counterUnit = Math.round(listedUnit * 0.98);
   const unit = state.step === 5 ? counterUnit : listedUnit;
   const delivery = freight(product, quantity, "intercity");
   const totalKg = product.weightKg * quantity;
+  const sellerLabel = isB2c ? "Seller" : "Supplier";
   const offers = [
     {
-      name: "Supplier A",
+      name: `${sellerLabel} A`,
       unit,
       delivery: state.step >= 2 ? delivery : null,
       note:
@@ -185,13 +277,13 @@ export function getDemo(state: DemoState) {
           : `Featured conversation · ${COURIERS.intercity.route}`,
     },
     {
-      name: "Supplier B",
+      name: `${sellerLabel} B`,
       unit: listedUnit + product.premium,
       delivery: 0,
       note: "Delivery included in price",
     },
     {
-      name: "Supplier C",
+      name: `${sellerLabel} C`,
       unit: listedUnit - Math.round(product.premium * 0.4),
       delivery: freight(product, quantity, "overland"),
       note: `Lower unit price · ${COURIERS.overland.route}`,
@@ -205,30 +297,57 @@ export function getDemo(state: DemoState) {
     .map((offer) => offer.total)
     .filter((total): total is number => total !== null);
   const bestTotal = knownTotals.length ? Math.min(...knownTotals) : null;
-  const draft = `Would ${money(counterUnit)} per ${product.unit} work for ${quantity} ${product.plural}, with payment on delivery? ${product.question}`;
-  const messages = [
-    {
-      step: 1,
-      speaker: "Buyer",
-      text: `I'm interested in ${quantity} ${product.plural} of ${product.name.toLowerCase()}. What price can you offer, including delivery to Karachi?`,
-    },
-    {
-      step: 2,
-      speaker: "Supplier A",
-      text: `For ${quantity} ${product.plural}, our quantity-tier price is ${money(listedUnit)} per ${product.unit}. Delivery is ${money(delivery)} extra for roughly ${totalKg} kg, dispatched within 2 working days.`,
-    },
-    { step: 4, speaker: "Buyer", text: draft },
-    {
-      step: 5,
-      speaker: "Supplier A",
-      text: `We can agree to ${money(counterUnit)} per ${product.unit}, plus ${money(delivery)} delivery — dispatched within 2 working days, payment on delivery. Please review the terms before placing an order.`,
-    },
-    {
-      step: 5,
-      speaker: "system",
-      text: "Tijarah keeps this example on record — agreed terms, a proper invoice, coordinated delivery and support for both sides. Contact details stay private until an order is placed.",
-    },
-  ].filter((message) => message.step <= state.step);
+  // B2C doesn't negotiate — the same step becomes the escrow checkout.
+  const draft = isB2c
+    ? `I'd like to order this — pay into Tijarah's escrow now, release to the seller when it arrives? ${product.question}`
+    : `Would ${money(counterUnit)} per ${product.unit} work for ${quantity} ${product.plural}, with payment on delivery? ${product.question}`;
+  const messages = isB2c
+    ? [
+        {
+          step: 1,
+          speaker: "Buyer",
+          text: `I'd like the ${product.name.toLowerCase()} — ${product.detail}. Is it in stock, and how much is delivery to Karachi?`,
+        },
+        {
+          step: 2,
+          speaker: `${sellerLabel} A`,
+          text: `In stock — ${money(listedUnit)} plus ${money(delivery)} delivery, dispatched tomorrow. Tijarah holds your payment in escrow until you confirm it arrived as described.`,
+        },
+        { step: 4, speaker: "Buyer", text: draft },
+        {
+          step: 5,
+          speaker: `${sellerLabel} A`,
+          text: `Confirmed at ${money(listedUnit)} plus ${money(delivery)} delivery — the escrow hold is noted. We'll dispatch tomorrow; funds release to us only after you confirm receipt.`,
+        },
+        {
+          step: 5,
+          speaker: "system",
+          text: "Tijarah keeps this order on record — payment stays in escrow until delivery is confirmed. Contact details stay private until an order is placed.",
+        },
+      ]
+    : [
+        {
+          step: 1,
+          speaker: "Buyer",
+          text: `I'm interested in ${quantity} ${product.plural} of ${product.name.toLowerCase()}. What price can you offer, including delivery to Karachi?`,
+        },
+        {
+          step: 2,
+          speaker: `${sellerLabel} A`,
+          text: `For ${quantity} ${product.plural}, our quantity-tier price is ${money(listedUnit)} per ${product.unit}. Delivery is ${money(delivery)} extra for roughly ${totalKg} kg, dispatched within 2 working days.`,
+        },
+        { step: 4, speaker: "Buyer", text: draft },
+        {
+          step: 5,
+          speaker: `${sellerLabel} A`,
+          text: `We can agree to ${money(counterUnit)} per ${product.unit}, plus ${money(delivery)} delivery — dispatched within 2 working days, payment on delivery. Please review the terms before placing an order.`,
+        },
+        {
+          step: 5,
+          speaker: "system",
+          text: "Tijarah keeps this example on record — agreed terms, a proper invoice, coordinated delivery and support for both sides. Contact details stay private until an order is placed.",
+        },
+      ].filter((message) => message.step <= state.step);
   return {
     product,
     quantity,
