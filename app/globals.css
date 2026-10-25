@@ -1663,6 +1663,36 @@ html {
   font-variant-numeric: tabular-nums;
 }
 
+/* B2B / B2C demo mode toggle — same pill language as the guide chips */
+.commerce-mode {
+  display: flex;
+  gap: 4px;
+  margin: 10px 0 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  width: fit-content;
+}
+.commerce-mode button {
+  min-height: 28px;
+  border-radius: 999px;
+  padding: 0 14px;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 160ms,
+    color 160ms;
+}
+.commerce-mode button.is-active {
+  background: var(--brand-solid);
+  color: #fff;
+}
+.commerce-mode button:not(.is-active):hover {
+  color: var(--text);
+}
+
 /* Scroll-target highlight when arriving from a "See it in the demo" link:
    two gentle pulses, then still. */
 .commerce-card:has(:target) {
