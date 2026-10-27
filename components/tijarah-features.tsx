@@ -22,6 +22,9 @@ import {
   ArrowRight,
   ArrowUpRight,
   Coffee,
+  CookingPot,
+  Footprints,
+  Headphones,
   MessageSquare,
   Shirt,
   Check,
@@ -41,7 +44,6 @@ import {
   Truck,
 } from "lucide-react";
 import {
-  PRODUCTS,
   catalogFor,
   INITIAL_DEMO,
   COD_REMITTANCE_DAYS,
@@ -218,6 +220,8 @@ function ProductArt({
 }) {
   const id = useId();
   if (product.id === "rice") return <RicePack compact={compact} />;
+  if (["earbuds", "sneakers", "kettle"].includes(product.id))
+    return <RetailArt id={id} product={product} compact={compact} />;
   const shirt = product.id === "apparel";
   return (
     <svg
@@ -328,6 +332,156 @@ function ProductArt({
   );
 }
 
+/** Distinct retail-product artwork — case+buds, a shoe profile, a kettle —
+ *  so B2C items stop borrowing the wholesale mug. Same frame and shadow. */
+function RetailArt({
+  id,
+  product,
+  compact = false,
+}: {
+  id: string;
+  product: Product;
+  compact?: boolean;
+}) {
+  const tones =
+    product.id === "earbuds"
+      ? ["#3e4a63", "#93a3c4", "#5c6c92", "#2c3852"]
+      : product.id === "sneakers"
+        ? ["#7a4a3a", "#e8b98f", "#a3614a", "#5e3a2e"]
+        : ["#6a7076", "#cdd3d8", "#8d949b", "#51565c"];
+  return (
+    <svg
+      viewBox="0 0 240 310"
+      className={
+        compact ? "commerce-pack commerce-pack-small" : "commerce-pack"
+      }
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id={`${id}-material`} x1="0" x2="1" y2="0.2">
+          <stop stopColor={tones[0]} />
+          <stop offset="0.35" stopColor={tones[1]} />
+          <stop offset="0.72" stopColor={tones[2]} />
+          <stop offset="1" stopColor={tones[3]} />
+        </linearGradient>
+      </defs>
+      <ellipse
+        cx="120"
+        cy="282"
+        rx="82"
+        ry="10"
+        fill="#253247"
+        opacity="0.12"
+      />
+      {product.id === "earbuds" && (
+        <>
+          <rect
+            x="62"
+            y="150"
+            width="116"
+            height="104"
+            rx="24"
+            fill={`url(#${id}-material)`}
+            stroke={tones[3]}
+          />
+          <rect
+            x="62"
+            y="176"
+            width="116"
+            height="4"
+            fill={tones[3]}
+            opacity="0.4"
+          />
+          <circle cx="120" cy="216" r="7" fill="#f4f7fb" opacity="0.8" />
+          <g stroke={tones[3]}>
+            <circle cx="95" cy="92" r="17" fill={`url(#${id}-material)`} />
+            <path d="M95 106 v34" strokeWidth="9" strokeLinecap="round" />
+            <circle cx="149" cy="104" r="15" fill={`url(#${id}-material)`} />
+            <path d="M149 116 v30" strokeWidth="8" strokeLinecap="round" />
+          </g>
+          <ellipse
+            cx="95"
+            cy="141"
+            rx="10"
+            ry="6"
+            fill={tones[1]}
+            opacity="0.6"
+          />
+          <ellipse
+            cx="149"
+            cy="147"
+            rx="9"
+            ry="5"
+            fill={tones[1]}
+            opacity="0.6"
+          />
+        </>
+      )}
+      {product.id === "sneakers" && (
+        <>
+          <path
+            d="M46 214 Q44 150 96 138 Q132 132 152 158 Q178 188 212 196 Q226 200 224 216 L222 232 Q120 250 50 238Z"
+            fill={`url(#${id}-material)`}
+            stroke={tones[3]}
+          />
+          <path
+            d="M46 226 Q120 246 222 224 L222 234 Q120 254 50 240Z"
+            fill="#f2f0ea"
+            stroke={tones[3]}
+            strokeWidth="1.5"
+          />
+          <path
+            d="M100 152 l26 -14 M104 168 l30 -16 M110 184 l32 -16"
+            stroke="#f4eee4"
+            strokeWidth="6"
+            strokeLinecap="round"
+          />
+          <path
+            d="M52 160 Q90 142 128 150"
+            fill="none"
+            stroke="#f4eee4"
+            strokeWidth="4"
+            opacity="0.5"
+          />
+        </>
+      )}
+      {product.id === "kettle" && (
+        <>
+          <path
+            d="M74 128 Q70 218 88 244 Q120 258 152 244 Q170 218 166 128Z"
+            fill={`url(#${id}-material)`}
+            stroke={tones[3]}
+          />
+          <path
+            d="M166 132 Q200 118 206 96 L184 96 Q178 114 160 122"
+            fill={tones[2]}
+            stroke={tones[3]}
+          />
+          <rect x="98" y="96" width="46" height="18" rx="8" fill={tones[3]} />
+          <rect x="66" y="238" width="110" height="16" rx="7" fill={tones[0]} />
+          <path
+            d="M94 140 Q90 200 100 230"
+            stroke="#f4f6f8"
+            strokeWidth="6"
+            opacity="0.5"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <rect
+            x="150"
+            y="150"
+            width="10"
+            height="52"
+            rx="4"
+            fill={tones[1]}
+            opacity="0.7"
+          />
+        </>
+      )}
+    </svg>
+  );
+}
+
 function Fieldscape() {
   return (
     <svg
@@ -396,11 +550,26 @@ const MODE_COPY = {
     quantityUnit: "Single item",
   },
 } as const;
-const ASSISTANT_MODES: { id: AssistantMode; label: string }[] = [
+const ASSISTANT_MODES: {
+  id: AssistantMode;
+  label: string;
+  wholesaleOnly?: boolean;
+}[] = [
   { id: "explain", label: "Explain" },
-  { id: "counter", label: "Counter-offer" },
+  // Retail buyers don't counter-offer — retail prices are fixed.
+  { id: "counter", label: "Counter-offer", wholesaleOnly: true },
   { id: "draft", label: "Draft reply" },
 ];
+/** Icon per catalogue product — keyed by id so B2C rows stop borrowing
+ *  the wholesale mug/shirt artwork. */
+const PRODUCT_ICONS: Record<string, typeof Leaf> = {
+  rice: Leaf,
+  apparel: Shirt,
+  home: Coffee,
+  earbuds: Headphones,
+  sneakers: Footprints,
+  kettle: CookingPot,
+};
 type SceneProps = { state: DemoState; dispatch: Dispatch<DemoAction> };
 type GuideFlow = "negotiate" | "compare" | "deliver";
 const GUIDE: { id: GuideFlow; n: string; label: string; target: string }[] = [
@@ -426,6 +595,7 @@ function WholesaleScene({
     marketDelta,
     draft,
     messages,
+    quantityIndex: selectedQuantity,
   } = getDemo(state);
   const reduce = useReducedMotion();
   const typing = useTypingDelay(state.step, !reduce);
@@ -497,7 +667,7 @@ function WholesaleScene({
           aria-label="Choose a product story"
         >
           {catalog.map((item, i) => {
-            const Icon = i === 0 ? Leaf : i === 1 ? Shirt : Coffee;
+            const Icon = PRODUCT_ICONS[item.id] ?? PackageCheck;
             return (
               <button
                 type="button"
@@ -576,7 +746,7 @@ function WholesaleScene({
                   <button
                     type="button"
                     key={value}
-                    aria-pressed={state.quantityIndex === i}
+                    aria-pressed={selectedQuantity === i}
                     onClick={() => dispatch({ type: "quantity", index: i })}
                   >
                     {value}
@@ -588,9 +758,11 @@ function WholesaleScene({
             <dl className="studio-figures">
               <div>
                 <dt>
-                  {state.step === 5
-                    ? "Demo agreed price"
-                    : "Quantity-tier price"}
+                  {state.mode === "b2c"
+                    ? "Listed price"
+                    : state.step === 5
+                      ? "Demo agreed price"
+                      : "Quantity-tier price"}
                 </dt>
                 <dd>
                   {money(unit)}
@@ -743,7 +915,9 @@ function WholesaleScene({
             role="group"
             aria-label="Assistant guidance"
           >
-            {ASSISTANT_MODES.map((mode) => (
+            {ASSISTANT_MODES.filter(
+              (mode) => !mode.wholesaleOnly || state.mode === "b2b",
+            ).map((mode) => (
               <button
                 type="button"
                 key={mode.id}
@@ -1451,17 +1625,18 @@ export function InsideTijarah() {
             <span className="commerce-concept-label">
               Product concept · Illustrative data
             </span>
+            {/* Not a tablist — there are no tab panels. A pressed-state
+                toggle group is the correct pattern. */}
             <div
               className="commerce-mode"
-              role="tablist"
+              role="group"
               aria-label="Demo audience"
             >
               {(["b2b", "b2c"] as const).map((m) => (
                 <button
                   key={m}
                   type="button"
-                  role="tab"
-                  aria-selected={state.mode === m}
+                  aria-pressed={state.mode === m}
                   className={state.mode === m ? "is-active" : ""}
                   onClick={() => dispatch({ type: "mode", mode: m })}
                 >

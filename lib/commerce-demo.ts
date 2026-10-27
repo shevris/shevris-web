@@ -262,7 +262,8 @@ export function getDemo(state: DemoState) {
   const quantity = product.quantities[quantityIndex];
   const listedUnit = product.rates[quantityIndex];
   const counterUnit = Math.round(listedUnit * 0.98);
-  const unit = state.step === 5 ? counterUnit : listedUnit;
+  // B2C never negotiates — the confirmed price stays the listed price.
+  const unit = state.step === 5 && !isB2c ? counterUnit : listedUnit;
   const delivery = freight(product, quantity, "intercity");
   const totalKg = product.weightKg * quantity;
   const sellerLabel = isB2c ? "Seller" : "Supplier";
@@ -324,7 +325,7 @@ export function getDemo(state: DemoState) {
           speaker: "system",
           text: "Tijarah keeps this order on record — payment stays in escrow until delivery is confirmed. Contact details stay private until an order is placed.",
         },
-      ]
+      ].filter((message) => message.step <= state.step)
     : [
         {
           step: 1,
@@ -351,6 +352,7 @@ export function getDemo(state: DemoState) {
   return {
     product,
     quantity,
+    quantityIndex,
     totalKg,
     listedUnit,
     counterUnit,
