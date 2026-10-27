@@ -938,8 +938,9 @@ function WholesaleScene({
                   before the next move.
                 </h6>
                 <p>
-                  Start the example and reveal the supplier quote. Then explore
-                  the explanation, a sample counter-offer, or a suggested reply.
+                  {state.mode === "b2c"
+                    ? "Start the example and reveal the seller's price. Then explore the explanation or a suggested reply."
+                    : "Start the example and reveal the supplier quote. Then explore the explanation, a sample counter-offer, or a suggested reply."}
                 </p>
               </>
             ) : state.assistant === "explain" ? (
@@ -951,7 +952,9 @@ function WholesaleScene({
                   {money(delivery)} delivery for about {totalKg} kg.{" "}
                   {state.step === 5
                     ? "This reflects the demo agreement."
-                    : "This is the supplier’s quantity-tier quote, not a negotiated discount."}
+                    : state.mode === "b2c"
+                      ? "This is the listed price — retail orders don't negotiate."
+                      : "This is the supplier’s quantity-tier quote, not a negotiated discount."}
                 </p>
                 <div
                   className={
@@ -1041,7 +1044,9 @@ function WholesaleScene({
             }
           >
             {state.step < 2
-              ? "Available after supplier quote"
+              ? state.mode === "b2c"
+                ? "Available after seller confirms"
+                : "Available after supplier quote"
               : state.step === 3
                 ? "Draft ready for your review"
                 : state.step > 3
@@ -1092,7 +1097,10 @@ function ComparisonScene({ state, dispatch }: SceneProps) {
       <div className="commerce-comparison-stage">
         <div className="commerce-table-product">
           <span className="commerce-product-icon">
-            <Leaf size={20} aria-hidden="true" />
+            {(() => {
+              const ProductIcon = PRODUCT_ICONS[product.id] ?? Leaf;
+              return <ProductIcon size={20} aria-hidden="true" />;
+            })()}
           </span>
           <span>
             <strong>
@@ -1105,13 +1113,19 @@ function ComparisonScene({ state, dispatch }: SceneProps) {
           <span className="commerce-sample-tag">DEMO</span>
         </div>
         <div className="commerce-table-label">
-          <span>Example supplier</span>
+          <span>
+            {state.mode === "b2c" ? "Example seller" : "Example supplier"}
+          </span>
           <span>Per {product.unit} · landed</span>
         </div>
         <div
           className="commerce-offers"
           role="group"
-          aria-label="Compare sample supplier offers"
+          aria-label={
+            state.mode === "b2c"
+              ? "Compare sample seller offers"
+              : "Compare sample supplier offers"
+          }
         >
           {offers.map((item, i) => {
             const best = item.total !== null && item.total === bestTotal;

@@ -274,7 +274,9 @@ export function getDemo(state: DemoState) {
       delivery: state.step >= 2 ? delivery : null,
       note:
         state.step === 5
-          ? "Demo negotiated terms"
+          ? isB2c
+            ? "Escrow checkout · paid into Tijarah"
+            : "Demo negotiated terms"
           : `Featured conversation · ${COURIERS.intercity.route}`,
     },
     {
