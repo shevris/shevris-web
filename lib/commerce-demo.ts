@@ -75,7 +75,9 @@ export const COURIERS = {
   overland: { base: 200, perKg: 24, route: "Sheikhupura → Karachi · overland" },
 } as const;
 
-export const COD_REMITTANCE_DAYS = "7–14 working days";
+/** How long the courier holds collected COD before remitting it onward.
+ *  Leopards (the first carrier) remits in about a week. */
+export const COD_REMITTANCE_DAYS = "≈7 working days";
 
 /** Everyday-shopping catalogue (B2C) — single units, retail prices. Same
  *  scene skeleton as wholesale; the trade-off scene becomes seller
@@ -325,7 +327,7 @@ export function getDemo(state: DemoState) {
         {
           step: 5,
           speaker: "system",
-          text: "Tijarah keeps this order on record — payment stays in escrow until delivery is confirmed. Contact details stay private until an order is placed.",
+          text: "Tijarah keeps this order on record — payment stays in escrow until delivery is confirmed. The courier is booked by Tijarah, so contact details stay private.",
         },
       ].filter((message) => message.step <= state.step)
     : [
@@ -348,7 +350,7 @@ export function getDemo(state: DemoState) {
         {
           step: 5,
           speaker: "system",
-          text: "Tijarah keeps this example on record — agreed terms, a proper invoice, coordinated delivery and support for both sides. Contact details stay private until an order is placed.",
+          text: "Tijarah keeps this example on record — agreed terms, a proper invoice, coordinated delivery and support for both sides. The courier is booked by Tijarah, so contact details stay private.",
         },
       ].filter((message) => message.step <= state.step);
   return {

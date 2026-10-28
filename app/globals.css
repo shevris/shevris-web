@@ -496,6 +496,15 @@ html {
 .studio-product-home .studio-artwork-label {
   color: #6b4d33;
 }
+.studio-product-earbuds .studio-artwork-label {
+  color: #c6d0f0;
+}
+.studio-product-sneakers .studio-artwork-label {
+  color: #7c4a30;
+}
+.studio-product-kettle .studio-artwork-label {
+  color: #5c666d;
+}
 .studio-artwork-caption {
   position: absolute;
   z-index: 2;
@@ -557,6 +566,26 @@ html {
   border-color: var(--accent);
   background: var(--panel);
   color: var(--accent);
+}
+/* Single-item products: a readout, not a one-button picker. */
+.studio-quantity-static {
+  margin-top: 14px;
+  color: var(--dim);
+  font-size: 11px;
+}
+.studio-quantity-static > span {
+  display: inline-flex;
+  min-width: 34px;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel);
+  color: var(--accent);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
 }
 .studio-figures {
   margin-top: 16px;
@@ -818,6 +847,18 @@ html {
   flex: 1;
   flex-direction: column;
   justify-content: center;
+}
+/* Honest source label, matching the backend attribution strings. */
+.studio-attribution {
+  display: block;
+  margin-bottom: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: var(--dim);
+  font-size: 9px;
+  font-style: italic;
+  letter-spacing: 0.02em;
 }
 .studio-advice-label {
   display: block;
@@ -1742,6 +1783,32 @@ html {
 }
 .ai-receipt-grid span:first-child em {
   color: var(--accent);
+}
+.ai-receipt-attrib {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.ai-receipt-attrib > span {
+  color: var(--dim);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.ai-receipt-attrib > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.ai-receipt-attrib em {
+  border: 1px dashed var(--line);
+  border-radius: 999px;
+  padding: 5px 11px;
+  color: var(--muted);
+  font-size: 10px;
+  font-style: normal;
 }
 .ai-receipt small {
   color: var(--dim);
