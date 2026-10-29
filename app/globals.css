@@ -2067,3 +2067,56 @@ html {
   padding: 6px 9px;
   font: inherit;
 }
+
+/* tracking view toggle + live stats in the delivery scene */
+.commerce-track-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 4px;
+  z-index: 2;
+}
+.commerce-track-toggle button {
+  border: 1px solid var(--line, #d8dce4);
+  background: var(--panel, #fff);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.commerce-track-toggle button[aria-pressed="true"] {
+  background: var(--brand, #1d5c3f);
+  color: #fff;
+  border-color: transparent;
+}
+.commerce-pro {
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: #5143d9;
+  color: #fff;
+  border-radius: 5px;
+  padding: 1px 5px;
+  margin-left: 4px;
+  vertical-align: 1px;
+}
+.commerce-track-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  color: var(--muted, #5b6472);
+}
+.commerce-track-stats > span:first-child {
+  font-weight: 700;
+  color: var(--ink, #1b2233);
+}
+.commerce-event {
+  color: #b45309;
+}
+.commerce-live-hint {
+  width: 100%;
+  font-size: 0.68rem;
+  color: var(--dim, #8a92a3);
+}

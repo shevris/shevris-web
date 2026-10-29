@@ -166,6 +166,7 @@ export type DemoState = {
   customPrice: number | null;
   courier: keyof typeof COURIERS;
   payment: "cod" | "prepaid";
+  trackingView: "standard" | "detailed";
 };
 export type DemoAction =
   | { type: "product" | "quantity" | "offer"; index: number }
@@ -175,6 +176,7 @@ export type DemoAction =
   | { type: "price"; value: number | null }
   | { type: "courier"; value: keyof typeof COURIERS }
   | { type: "payment"; value: "cod" | "prepaid" }
+  | { type: "trackview"; value: "standard" | "detailed" }
   | {
       type: "advance" | "use-draft" | "discard-draft" | "restart" | "delivery";
     };
@@ -191,6 +193,7 @@ export const INITIAL_DEMO: DemoState = {
   customPrice: null,
   courier: "intercity",
   payment: "prepaid",
+  trackingView: "standard",
 };
 
 export const catalogFor = (mode: DemoMode) =>
@@ -258,7 +261,9 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         quantityIndex: state.quantityIndex,
       };
     case "delivery":
-      return { ...state, deliveryStep: (state.deliveryStep + 1) % 3 };
+      return { ...state, deliveryStep: (state.deliveryStep + 1) % 5 };
+    case "trackview":
+      return { ...state, trackingView: action.value };
   }
 }
 

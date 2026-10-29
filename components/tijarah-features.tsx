@@ -642,7 +642,20 @@ function RetailScene({ product }: { product: Product }) {
 
 /* ---------- data ---------- */
 
-const STAGES = ["Preparing", "On the way", "Delivered"];
+const STAGES = [
+  "Courier assigned",
+  "Parcel picked up",
+  "In transit",
+  "Out for delivery",
+  "Delivered",
+];
+const STAGE_ETA_MIN = [185, 160, 58, 26, 0];
+const STAGE_SPEED_KMH = [0, 28, 22, 18, 0];
+// Deterministic interruption events — the live-tracking story: stops shift ETA.
+const STAGE_EVENTS: Record<number, string> = {
+  2: "Rider slowed through traffic near the bypass · +12 min to arrival",
+  3: "Rider on a short break · +8 min to arrival",
+};
 const NEGOTIATION_STEPS = [
   "Ready to explore",
   "Buyer enquiry",
@@ -1503,7 +1516,7 @@ function ComparisonScene({ state, dispatch }: SceneProps) {
 
 const ROUTE =
   "M80 162 L177 162 Q190 162 190 148 L190 103 Q190 89 205 89 L289 89 Q303 89 303 74 L303 52 L410 52";
-const ROUTE_PROGRESS = [0.04, 0.53, 1];
+const ROUTE_PROGRESS = [0.02, 0.2, 0.53, 0.85, 1];
 
 function DeliveryScene({ state, dispatch }: SceneProps) {
   const { product, quantity } = getDemo(state);
@@ -1603,7 +1616,7 @@ function DeliveryScene({ state, dispatch }: SceneProps) {
             cx="410"
             cy="52"
             r="8"
-            fill={stage === 2 ? "#5143d9" : "#fff"}
+            fill={stage === 4 ? "#5143d9" : "#fff"}
             stroke="#5143d9"
             strokeWidth="3"
           />
@@ -1624,12 +1637,48 @@ function DeliveryScene({ state, dispatch }: SceneProps) {
           <MapPin size={13} aria-hidden="true" /> Illustrative route
         </span>
         <div
+          className="commerce-track-toggle"
+          role="group"
+          aria-label="Tracking detail level"
+        >
+          <button
+            type="button"
+            aria-pressed={state.trackingView === "standard"}
+            onClick={() => dispatch({ type: "trackview", value: "standard" })}
+          >
+            Standard
+          </button>
+          <button
+            type="button"
+            aria-pressed={state.trackingView === "detailed"}
+            onClick={() => dispatch({ type: "trackview", value: "detailed" })}
+          >
+            Detailed <span className="commerce-pro">Pro</span>
+          </button>
+        </div>
+        <div className="commerce-track-stats" aria-live="polite">
+          <span>
+            {stage === 4 ? "Arrived" : `ETA ~${STAGE_ETA_MIN[stage]} min`}
+          </span>
+          {state.trackingView === "detailed" && stage !== 4 && (
+            <>
+              <span>{STAGE_SPEED_KMH[stage]} km/h</span>
+              {STAGE_EVENTS[stage] && (
+                <span className="commerce-event">{STAGE_EVENTS[stage]}</span>
+              )}
+              <span className="commerce-live-hint">
+                Live position, speed &amp; stops — detailed tracking
+              </span>
+            </>
+          )}
+        </div>
+        <div
           className="commerce-delivery-status"
           aria-live="polite"
           aria-atomic="true"
         >
           <span className="commerce-delivery-icon">
-            {stage === 2 ? (
+            {stage === 4 ? (
               <PackageCheck size={21} aria-hidden="true" />
             ) : (
               <Truck size={21} aria-hidden="true" />
@@ -1642,17 +1691,17 @@ function DeliveryScene({ state, dispatch }: SceneProps) {
             </small>
             <strong>{STAGES[stage]}</strong>
           </span>
-          <span className="commerce-step-count">0{stage + 1} / 03</span>
+          <span className="commerce-step-count">0{stage + 1} / 05</span>
         </div>
       </div>
       <div className="commerce-delivery-escrow" aria-live="polite">
         <span className="commerce-escrow-chip">
           <LockKeyhole size={13} aria-hidden="true" />
-          {stage === 2 ? escrow.released : escrow.held}
+          {stage === 4 ? escrow.released : escrow.held}
         </span>
         <span className="commerce-remit-chip">
           <Timer size={13} aria-hidden="true" />
-          {stage === 2 ? escrow.post : escrow.pre}
+          {stage === 4 ? escrow.post : escrow.pre}
         </span>
       </div>
       <div className="commerce-delivery-controls">
@@ -1669,8 +1718,8 @@ function DeliveryScene({ state, dispatch }: SceneProps) {
           className="commerce-text-button"
           onClick={() => dispatch({ type: "delivery" })}
         >
-          {stage === 2 ? "Replay journey" : "Next step"}
-          {stage === 2 ? (
+          {stage === 4 ? "Replay journey" : "Next step"}
+          {stage === 4 ? (
             <RotateCcw size={14} aria-hidden="true" />
           ) : (
             <ArrowRight size={14} aria-hidden="true" />
@@ -1901,7 +1950,7 @@ function shellReducer(shell: Shell, action: DemoAction): Shell {
     done: {
       negotiate: shell.done.negotiate || demo.step === 5,
       compare: shell.done.compare || action.type === "offer",
-      deliver: shell.done.deliver || demo.deliveryStep === 2,
+      deliver: shell.done.deliver || demo.deliveryStep === 4,
     },
   };
 }
