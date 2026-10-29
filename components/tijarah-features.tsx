@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import {
   catalogFor,
+  COURIERS,
   INITIAL_DEMO,
   COD_REMITTANCE_DAYS,
   demoReducer,
@@ -764,6 +765,8 @@ function WholesaleScene({
     marketDelta,
     viewers,
     weekDelta,
+    courier,
+    payment,
     draft,
     messages,
     quantityIndex: selectedQuantity,
@@ -941,6 +944,48 @@ function WholesaleScene({
                 }
               />
             </label>
+            <fieldset className="studio-quantity">
+              <legend>Courier route</legend>
+              <div>
+                {Object.entries(COURIERS).map(([key, c]) => (
+                  <button
+                    type="button"
+                    key={key}
+                    aria-pressed={courier === key}
+                    title={c.route}
+                    onClick={() =>
+                      dispatch({
+                        type: "courier",
+                        value: key as keyof typeof COURIERS,
+                      })
+                    }
+                  >
+                    {key}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <fieldset className="studio-quantity">
+              <legend>Pay how?</legend>
+              <div>
+                <button
+                  type="button"
+                  aria-pressed={payment === "prepaid"}
+                  onClick={() =>
+                    dispatch({ type: "payment", value: "prepaid" })
+                  }
+                >
+                  Escrow
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={payment === "cod"}
+                  onClick={() => dispatch({ type: "payment", value: "cod" })}
+                >
+                  COD
+                </button>
+              </div>
+            </fieldset>
             {product.quantities.length > 1 ? (
               <fieldset className="studio-quantity">
                 <legend>Order size · {product.plural}</legend>
