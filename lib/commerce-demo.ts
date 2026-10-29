@@ -162,11 +162,13 @@ export type DemoState = {
   offerIndex: number;
   deliveryStep: number;
   assistant: AssistantMode;
+  customMessages: { speaker: string; text: string }[];
 };
 export type DemoAction =
   | { type: "product" | "quantity" | "offer"; index: number }
   | { type: "assistant"; mode: AssistantMode }
   | { type: "mode"; mode: DemoMode }
+  | { type: "send"; text: string }
   | {
       type: "advance" | "use-draft" | "discard-draft" | "restart" | "delivery";
     };
@@ -179,6 +181,7 @@ export const INITIAL_DEMO: DemoState = {
   offerIndex: 0,
   deliveryStep: 0,
   assistant: "explain",
+  customMessages: [],
 };
 
 export const catalogFor = (mode: DemoMode) =>
@@ -212,6 +215,16 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
       };
     case "assistant":
       return { ...state, assistant: action.mode };
+    case "send":
+      return action.text.trim()
+        ? {
+            ...state,
+            customMessages: [
+              ...state.customMessages,
+              { speaker: "Buyer", text: action.text.trim() },
+            ],
+          }
+        : state;
     case "use-draft":
       return state.step === 2
         ? { ...state, step: 3, assistant: "draft" }
@@ -353,6 +366,10 @@ export function getDemo(state: DemoState) {
           text: "Tijarah keeps this example on record — agreed terms, a proper invoice, coordinated delivery and support for both sides. The courier is booked by Tijarah, so contact details stay private.",
         },
       ].filter((message) => message.step <= state.step);
+  const allMessages = [
+    ...messages,
+    ...state.customMessages.map((m) => ({ ...m, step: state.step })),
+  ];
   return {
     product,
     quantity,
@@ -367,6 +384,6 @@ export function getDemo(state: DemoState) {
     offers,
     bestTotal,
     draft,
-    messages,
+    messages: allMessages,
   };
 }

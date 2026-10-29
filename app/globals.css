@@ -2009,3 +2009,34 @@ html {
     display: none;
   }
 }
+
+/* free-text ask box in the commerce demo conversation */
+.studio-ask {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px 0;
+}
+.studio-ask input {
+  flex: 1;
+  border: 1px solid var(--line, #d8dce4);
+  border-radius: 10px;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  background: var(--panel, #fff);
+  color: var(--ink, #1b2233);
+}
+.studio-ask input:focus-visible {
+  outline: 2px solid var(--brand, #1d5c3f);
+  outline-offset: 1px;
+}
+.studio-ask button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--brand, #1d5c3f);
+  color: #fff;
+  cursor: pointer;
+}

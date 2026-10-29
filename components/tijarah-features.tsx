@@ -967,7 +967,12 @@ function WholesaleScene({
             <MessageSquare size={17} aria-hidden="true" />
             <div>
               <h5>{copy.conversationTitle}</h5>
-              <span>{copy.pairLabel} · Scripted example</span>
+              <span>
+                {copy.pairLabel} · Scripted example
+                {state.mode === "b2c"
+                  ? " · Seller's AI agent answers every buyer at once"
+                  : ""}
+              </span>
             </div>
           </div>
           <div className="studio-progress">
@@ -1049,6 +1054,37 @@ function WholesaleScene({
                 {copy.discard}
               </button>
             </div>
+          )}
+          {state.step >= 1 && state.step < 5 && (
+            <form
+              className="studio-ask"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const input = e.currentTarget.querySelector("input");
+                if (input?.value.trim()) {
+                  dispatch({ type: "send", text: input.value });
+                  input.value = "";
+                }
+              }}
+            >
+              <input
+                type="text"
+                placeholder={
+                  state.mode === "b2c"
+                    ? "Ask the seller anything…"
+                    : "Ask the supplier anything…"
+                }
+                aria-label={
+                  state.mode === "b2c"
+                    ? "Ask the seller a question"
+                    : "Ask the supplier a question"
+                }
+                maxLength={200}
+              />
+              <button type="submit" aria-label="Send message">
+                <ArrowRight size={15} aria-hidden="true" />
+              </button>
+            </form>
           )}
           <div className="studio-conversation-actions">
             <button
