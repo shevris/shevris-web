@@ -13,6 +13,7 @@ import {
   AnimatePresence,
   animate,
   motion,
+  useInView,
   useMotionValue,
   useReducedMotion,
   useTransform,
@@ -32,6 +33,8 @@ import {
   Leaf,
   LockKeyhole,
   MapPin,
+  Maximize2,
+  X,
   PackageCheck,
   RotateCcw,
   ScanLine,
@@ -760,6 +763,14 @@ const GUIDE: { id: GuideFlow; n: string; target: string }[] = [
   { id: "compare", n: "02", target: "comparison-title" },
   { id: "deliver", n: "03", target: "delivery-title" },
 ];
+
+/** Defer mounting heavy scenes until they're near the viewport — keeps the
+ *  first paint light (SVG scenes + motion values don't cost until needed). */
+function LazyMount({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "300px" });
+  return <div ref={ref}>{inView ? children : null}</div>;
+}
 
 function WholesaleScene({
   state,
@@ -1965,6 +1976,19 @@ export function InsideTijarah() {
     : !done.compare
       ? "compare"
       : "deliver";
+  const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    if (!expanded) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setExpanded(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [expanded]);
   return (
     <div id="inside-tijarah" className="commerce-showcase">
       <Reveal>
@@ -2010,25 +2034,51 @@ export function InsideTijarah() {
       <Reveal>
         <DemoGuide done={done} active={active} mode={state.mode} />
       </Reveal>
-      <Reveal>
-        <WholesaleScene
-          state={state}
-          dispatch={dispatch}
-          beacon={!interacted}
-        />
-      </Reveal>
+      <div className={expanded ? "commerce-expand is-open" : "commerce-expand"}>
+        <button
+          type="button"
+          className="commerce-expand-btn"
+          onClick={() => setExpanded(true)}
+          aria-expanded={expanded}
+        >
+          <Maximize2 size={14} aria-hidden="true" /> Full screen
+        </button>
+        <Reveal>
+          <WholesaleScene
+            state={state}
+            dispatch={dispatch}
+            beacon={!interacted}
+          />
+        </Reveal>
+        {expanded && (
+          <button
+            type="button"
+            className="commerce-expand-close"
+            onClick={() => setExpanded(false)}
+            aria-label="Close full screen view"
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
+        )}
+      </div>
       <div className="commerce-main-grid">
         <Reveal>
-          <ComparisonScene state={state} dispatch={dispatch} />
+          <LazyMount>
+            <ComparisonScene state={state} dispatch={dispatch} />
+          </LazyMount>
         </Reveal>
         <Reveal delay={0.08}>
-          <DeliveryScene state={state} dispatch={dispatch} />
+          <LazyMount>
+            <DeliveryScene state={state} dispatch={dispatch} />
+          </LazyMount>
         </Reveal>
       </div>
-      <SupportingScenes
-        key={`${state.productIndex}-${state.quantityIndex}`}
-        state={state}
-      />
+      <LazyMount>
+        <SupportingScenes
+          key={`${state.productIndex}-${state.quantityIndex}`}
+          state={state}
+        />
+      </LazyMount>
       <Reveal>
         <div className="commerce-card ai-receipt" role="note">
           <div className="ai-receipt-head">

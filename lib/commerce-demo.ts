@@ -404,7 +404,7 @@ export function getDemo(state: DemoState) {
   // Every free-text buyer message gets a reply from the seller's AI agent —
   // labeled, bounds-referenced, never committing to final terms (that stays
   // on the deterministic checkout screen, per agentic-commerce guardrails).
-  const agentReplies = state.customMessages.map((m) => ({
+  const agentReplies = state.customMessages.map(() => ({
     step: state.step,
     speaker: `${sellerLabel} A · AI agent`,
     text: isB2c
