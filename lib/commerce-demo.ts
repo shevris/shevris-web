@@ -163,12 +163,14 @@ export type DemoState = {
   deliveryStep: number;
   assistant: AssistantMode;
   customMessages: { speaker: string; text: string }[];
+  customPrice: number | null;
 };
 export type DemoAction =
   | { type: "product" | "quantity" | "offer"; index: number }
   | { type: "assistant"; mode: AssistantMode }
   | { type: "mode"; mode: DemoMode }
   | { type: "send"; text: string }
+  | { type: "price"; value: number | null }
   | {
       type: "advance" | "use-draft" | "discard-draft" | "restart" | "delivery";
     };
@@ -182,6 +184,7 @@ export const INITIAL_DEMO: DemoState = {
   deliveryStep: 0,
   assistant: "explain",
   customMessages: [],
+  customPrice: null,
 };
 
 export const catalogFor = (mode: DemoMode) =>
@@ -215,6 +218,8 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
       };
     case "assistant":
       return { ...state, assistant: action.mode };
+    case "price":
+      return { ...state, customPrice: action.value };
     case "send":
       return action.text.trim()
         ? {
@@ -282,10 +287,11 @@ export function getDemo(state: DemoState) {
   const delivery = freight(product, quantity, "intercity");
   const totalKg = product.weightKg * quantity;
   const sellerLabel = isB2c ? "Seller" : "Supplier";
+  const customUnit = state.customPrice;
   const offers = [
     {
       name: `${sellerLabel} A`,
-      unit,
+      unit: customUnit ?? unit,
       delivery: state.step >= 2 ? delivery : null,
       note:
         state.step === 5
@@ -385,5 +391,7 @@ export function getDemo(state: DemoState) {
     bestTotal,
     draft,
     messages: allMessages,
+    viewers: 2 + (state.productIndex % 3),
+    weekDelta: ((product.id.charCodeAt(0) % 7) - 3) * 0.8,
   };
 }

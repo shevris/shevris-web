@@ -762,6 +762,8 @@ function WholesaleScene({
     subtotal,
     delivery,
     marketDelta,
+    viewers,
+    weekDelta,
     draft,
     messages,
     quantityIndex: selectedQuantity,
@@ -914,6 +916,31 @@ function WholesaleScene({
             <span className="commerce-eyebrow">Illustrative product</span>
             <h5>{product.name}</h5>
             <p>{product.detail}</p>
+            <p className="studio-live-row">
+              <span className="studio-viewers">
+                {viewers} buyers viewing this item
+              </span>
+              <span className="studio-tick">
+                this week {weekDelta >= 0 ? "+" : ""}
+                {weekDelta.toFixed(1)}%
+              </span>
+            </p>
+            <label className="studio-try">
+              Try your price
+              <input
+                type="number"
+                inputMode="numeric"
+                placeholder={money(listedUnit)}
+                defaultValue={state.customPrice ?? ""}
+                aria-label="Try your own price — totals update live"
+                onChange={(e) =>
+                  dispatch({
+                    type: "price",
+                    value: e.target.value ? Number(e.target.value) : null,
+                  })
+                }
+              />
+            </label>
             {product.quantities.length > 1 ? (
               <fieldset className="studio-quantity">
                 <legend>Order size · {product.plural}</legend>

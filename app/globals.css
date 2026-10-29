@@ -2040,3 +2040,30 @@ html {
   color: #fff;
   cursor: pointer;
 }
+
+/* live-feel chips + try-your-price input in the demo order card */
+.studio-live-row {
+  display: flex;
+  gap: 10px;
+  font-size: 0.78rem;
+  color: var(--muted, #5b6472);
+}
+.studio-tick {
+  color: var(--brand, #1d5c3f);
+  font-weight: 600;
+}
+.studio-try {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--muted, #5b6472);
+  margin-top: 6px;
+}
+.studio-try input {
+  width: 110px;
+  border: 1px solid var(--line, #d8dce4);
+  border-radius: 8px;
+  padding: 6px 9px;
+  font: inherit;
+}
