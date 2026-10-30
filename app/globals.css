@@ -496,6 +496,15 @@ html {
 .studio-product-home .studio-artwork-label {
   color: #6b4d33;
 }
+.studio-product-earbuds .studio-artwork-label {
+  color: #c6d0f0;
+}
+.studio-product-sneakers .studio-artwork-label {
+  color: #7c4a30;
+}
+.studio-product-kettle .studio-artwork-label {
+  color: #5c666d;
+}
 .studio-artwork-caption {
   position: absolute;
   z-index: 2;
@@ -557,6 +566,26 @@ html {
   border-color: var(--accent);
   background: var(--panel);
   color: var(--accent);
+}
+/* Single-item products: a readout, not a one-button picker. */
+.studio-quantity-static {
+  margin-top: 14px;
+  color: var(--dim);
+  font-size: 11px;
+}
+.studio-quantity-static > span {
+  display: inline-flex;
+  min-width: 34px;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel);
+  color: var(--accent);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
 }
 .studio-figures {
   margin-top: 16px;
@@ -818,6 +847,18 @@ html {
   flex: 1;
   flex-direction: column;
   justify-content: center;
+}
+/* Honest source label, matching the backend attribution strings. */
+.studio-attribution {
+  display: block;
+  margin-bottom: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: var(--dim);
+  font-size: 9px;
+  font-style: italic;
+  letter-spacing: 0.02em;
 }
 .studio-advice-label {
   display: block;
@@ -1743,6 +1784,32 @@ html {
 .ai-receipt-grid span:first-child em {
   color: var(--accent);
 }
+.ai-receipt-attrib {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.ai-receipt-attrib > span {
+  color: var(--dim);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.ai-receipt-attrib > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.ai-receipt-attrib em {
+  border: 1px dashed var(--line);
+  border-radius: 999px;
+  padding: 5px 11px;
+  color: var(--muted);
+  font-size: 10px;
+  font-style: normal;
+}
 .ai-receipt small {
   color: var(--dim);
   font-size: 11.5px;
@@ -1940,5 +2007,187 @@ html {
   }
   .route-dot {
     display: none;
+  }
+}
+
+/* free-text ask box in the commerce demo conversation */
+.studio-ask {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px 0;
+}
+.studio-ask input {
+  flex: 1;
+  border: 1px solid var(--line, #d8dce4);
+  border-radius: 10px;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  background: var(--panel, #fff);
+  color: var(--ink, #1b2233);
+}
+.studio-ask input:focus-visible {
+  outline: 2px solid var(--brand, #1d5c3f);
+  outline-offset: 1px;
+}
+.studio-ask button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--brand, #1d5c3f);
+  color: #fff;
+  cursor: pointer;
+}
+
+/* live-feel chips + try-your-price input in the demo order card */
+.studio-live-row {
+  display: flex;
+  gap: 10px;
+  font-size: 0.78rem;
+  color: var(--muted, #5b6472);
+}
+.studio-tick {
+  color: var(--brand, #1d5c3f);
+  font-weight: 600;
+}
+.studio-try {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--muted, #5b6472);
+  margin-top: 6px;
+}
+.studio-try input {
+  width: 110px;
+  border: 1px solid var(--line, #d8dce4);
+  border-radius: 8px;
+  padding: 6px 9px;
+  font: inherit;
+}
+
+/* tracking view toggle + live stats in the delivery scene */
+.commerce-track-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 4px;
+  z-index: 2;
+}
+.commerce-track-toggle button {
+  border: 1px solid var(--line, #d8dce4);
+  background: var(--panel, #fff);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.commerce-track-toggle button[aria-pressed="true"] {
+  background: var(--brand, #1d5c3f);
+  color: #fff;
+  border-color: transparent;
+}
+.commerce-pro {
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: #5143d9;
+  color: #fff;
+  border-radius: 5px;
+  padding: 1px 5px;
+  margin-left: 4px;
+  vertical-align: 1px;
+}
+.commerce-track-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  color: var(--muted, #5b6472);
+}
+.commerce-track-stats > span:first-child {
+  font-weight: 700;
+  color: var(--ink, #1b2233);
+}
+.commerce-event {
+  color: #b45309;
+}
+.commerce-live-hint {
+  width: 100%;
+  font-size: 0.68rem;
+  color: var(--dim, #8a92a3);
+}
+
+/* expand-to-fullscreen for the commerce studio (escape view) */
+.commerce-expand {
+  position: relative;
+}
+.commerce-expand-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line, #d8dce4);
+  background: var(--panel, #fff);
+  border-radius: 9px;
+  padding: 6px 11px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted, #5b6472);
+  cursor: pointer;
+}
+.commerce-expand.is-open {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  overflow: auto;
+  background: var(--canvas, #f6f7f9);
+  padding: 56px 16px 32px;
+}
+.commerce-expand.is-open .commerce-card,
+.commerce-expand.is-open .studio-card {
+  max-width: 1180px;
+  margin-inline: auto;
+}
+.commerce-expand-close {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 95;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line, #d8dce4);
+  border-radius: 10px;
+  background: var(--panel, #fff);
+  color: var(--ink, #1b2233);
+  cursor: pointer;
+}
+.commerce-expand.is-open .commerce-expand-btn {
+  display: none;
+}
+
+/* mobile: thumb-reach primary action, tighter panels */
+@media (max-width: 760px) {
+  .studio-conversation-actions {
+    position: sticky;
+    bottom: 10px;
+    z-index: 4;
+    background: var(--panel, #fff);
+    padding: 10px;
+    border-radius: 12px;
+    box-shadow: 0 -8px 20px rgba(20, 28, 45, 0.08);
+  }
+  .commerce-expand-btn {
+    top: 8px;
+    right: 8px;
+    padding: 5px 9px;
   }
 }

@@ -13,6 +13,7 @@ import {
   AnimatePresence,
   animate,
   motion,
+  useInView,
   useMotionValue,
   useReducedMotion,
   useTransform,
@@ -32,6 +33,8 @@ import {
   Leaf,
   LockKeyhole,
   MapPin,
+  Maximize2,
+  X,
   PackageCheck,
   RotateCcw,
   ScanLine,
@@ -45,6 +48,7 @@ import {
 } from "lucide-react";
 import {
   catalogFor,
+  COURIERS,
   INITIAL_DEMO,
   COD_REMITTANCE_DAYS,
   demoReducer,
@@ -514,9 +518,147 @@ function Fieldscape() {
   );
 }
 
+/** Scene backdrop per retail product — the same "template image" treatment
+ *  the rice Fieldscape gives wholesale, so B2C cards don't sit on a blank
+ *  panel. Flat shapes, one palette per product, clipped by the artwork
+ *  frame (positioned like .commerce-fieldscape). */
+function RetailScene({ product }: { product: Product }) {
+  return (
+    <svg
+      className="commerce-fieldscape"
+      viewBox="0 0 760 500"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+    >
+      {product.id === "earbuds" && (
+        <>
+          <rect width="760" height="500" fill="#2a3350" />
+          <circle cx="575" cy="110" r="150" fill="#46538a" opacity="0.55" />
+          <circle cx="575" cy="110" r="88" fill="#6879b8" opacity="0.45" />
+          <path d="M0 330 H760 V500 H0Z" fill="#1d2440" />
+          <path d="M0 330 H760" stroke="#3d4a77" strokeWidth="3" />
+          {/* desk silhouettes */}
+          <rect x="88" y="252" width="150" height="78" rx="10" fill="#39446e" />
+          <rect x="98" y="262" width="130" height="10" rx="5" fill="#57669c" />
+          <rect x="98" y="280" width="96" height="10" rx="5" fill="#57669c" />
+          <rect x="560" y="240" width="96" height="90" rx="14" fill="#39446e" />
+          <circle cx="608" cy="285" r="26" fill="#57669c" />
+          <g fill="#93a3c4" opacity="0.5">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <circle key={i} cx={330 + i * 34} cy="470" r="3" />
+            ))}
+          </g>
+          <path
+            d="M60 380 Q160 356 260 380 T460 380 T660 380"
+            fill="none"
+            stroke="#57669c"
+            strokeWidth="3"
+            opacity="0.5"
+          />
+        </>
+      )}
+      {product.id === "sneakers" && (
+        <>
+          <rect width="760" height="500" fill="#e8b98f" />
+          <circle cx="610" cy="88" r="64" fill="#f6dcc0" />
+          {/* track lanes */}
+          <path d="M0 250 Q380 190 760 240 V500 H0Z" fill="#b0714f" />
+          <path
+            d="M0 300 Q380 246 760 292"
+            fill="none"
+            stroke="#f2e4d4"
+            strokeWidth="10"
+          />
+          <path
+            d="M0 352 Q380 302 760 344"
+            fill="none"
+            stroke="#f2e4d4"
+            strokeWidth="10"
+          />
+          <path
+            d="M0 404 Q380 358 760 396"
+            fill="none"
+            stroke="#f2e4d4"
+            strokeWidth="10"
+          />
+          <path
+            d="M0 456 Q380 414 760 448"
+            fill="none"
+            stroke="#f2e4d4"
+            strokeWidth="10"
+          />
+          {/* lane ticks */}
+          <g stroke="#8c5238" strokeWidth="8" opacity="0.5">
+            <path d="M120 262 l-14 44 M320 236 l-10 46 M520 236 l-8 48 M690 258 l-6 46" />
+          </g>
+        </>
+      )}
+      {product.id === "kettle" && (
+        <>
+          <rect width="760" height="500" fill="#e3e7ea" />
+          {/* tile wall */}
+          <g stroke="#c3ccd2" strokeWidth="3">
+            <path d="M0 90 H760 M0 170 H760 M0 250 H760" />
+            <path d="M120 10 V250 M300 10 V250 M480 10 V250 M660 10 V250" />
+          </g>
+          {/* counter */}
+          <path d="M0 330 H760 V500 H0Z" fill="#9aa4ab" />
+          <path d="M0 330 H760" stroke="#7d878f" strokeWidth="6" />
+          <rect
+            x="70"
+            y="360"
+            width="130"
+            height="90"
+            rx="8"
+            fill="#7d878f"
+            opacity="0.55"
+          />
+          <rect
+            x="560"
+            y="360"
+            width="130"
+            height="90"
+            rx="8"
+            fill="#7d878f"
+            opacity="0.55"
+          />
+          {/* window light */}
+          <rect
+            x="540"
+            y="30"
+            width="150"
+            height="210"
+            rx="10"
+            fill="#f4f7f9"
+            opacity="0.8"
+          />
+          <path
+            d="M615 30 V240 M540 135 H690"
+            stroke="#c3ccd2"
+            strokeWidth="4"
+          />
+        </>
+      )}
+    </svg>
+  );
+}
+
 /* ---------- data ---------- */
 
-const STAGES = ["Preparing", "On the way", "Delivered"];
+const STAGES = [
+  "Courier assigned",
+  "Parcel picked up",
+  "In transit",
+  "Out for delivery",
+  "Delivered",
+];
+const STAGE_ETA_MIN = [185, 160, 58, 26, 0];
+const STAGE_SPEED_KMH = [0, 28, 22, 18, 0];
+// Deterministic interruption events — the live-tracking story: stops shift ETA.
+const STAGE_EVENTS: Record<number, string> = {
+  2: "Rider slowed through traffic near the bypass · +12 min to arrival",
+  3: "Rider on a short break · +8 min to arrival",
+};
 const NEGOTIATION_STEPS = [
   "Ready to explore",
   "Buyer enquiry",
@@ -526,14 +668,37 @@ const NEGOTIATION_STEPS = [
   "Example terms agreed",
 ];
 /** Mode-aware chrome for the demo — the scenes are shared; what differs is
- *  who the counterparty is and what the middle step means. */
+ *  who the counterparty is and what the middle step means. Every string a
+ *  visitor reads in B2C comes from here so wholesale vocabulary can't leak
+ *  into the retail story. */
 const MODE_COPY = {
   b2b: {
     label: "Wholesale (B2B)",
     steps: NEGOTIATION_STEPS,
     other: "Supplier A",
     pairLabel: "Buyer + Supplier A",
-    quantityUnit: "MOQ-tier quote",
+    conversationTitle: "At the negotiation table",
+    conversationAria: "Example buyer and supplier conversation",
+    emptyLead: "You’re the buyer.",
+    emptyHint: "Ask for a price.",
+    emptyBody:
+      "Five short steps: enquire, get a quote, counter, agree — with a helper beside you.",
+    draftChip: "YOUR DRAFT · NOT SENT",
+    discard: "Discard draft",
+    draftAdvice:
+      "Review before using. This sample asks for terms; it does not accept a deal for you.",
+    useAfterQuote: "Available after supplier quote",
+    reviewDraft: "Review suggested reply",
+    useDraft: "Use this draft in the demo",
+    disclaimer: "Illustrative negotiation",
+    resetNote: "Changing product or quantity resets the example.",
+    guide: ["Negotiate", "Compare", "Deliver"],
+    escrow: {
+      held: "COD — pay the courier at your door",
+      released: "Delivered — courier remits COD to Tijarah",
+      pre: `Courier collects COD · remits to Tijarah in ${COD_REMITTANCE_DAYS}`,
+      post: "Seller paid from the remitted COD — courier cycle applies",
+    },
   },
   b2c: {
     label: "Everyday shopping (B2C)",
@@ -547,7 +712,28 @@ const MODE_COPY = {
     ],
     other: "Seller A",
     pairLabel: "You + Seller A",
-    quantityUnit: "Single item",
+    conversationTitle: "Your order conversation",
+    conversationAria: "Example buyer and seller conversation",
+    emptyLead: "You’re the shopper.",
+    emptyHint: "Pick what you need.",
+    emptyBody:
+      "Five short steps: pick a product, ask the seller, place the order into escrow — with a helper beside you.",
+    draftChip: "YOUR ORDER · NOT PLACED",
+    discard: "Discard order",
+    draftAdvice:
+      "Review before ordering. This sample places the order into escrow — nothing is charged.",
+    useAfterQuote: "Available after the seller answers",
+    reviewDraft: "Review your order",
+    useDraft: "Place this order in the demo",
+    disclaimer: "Illustrative order",
+    resetNote: "Changing product resets the example.",
+    guide: ["Order", "Compare", "Deliver"],
+    escrow: {
+      held: "Payment held in escrow",
+      released: "Payment released — delivery confirmed",
+      pre: `vs. a courier COD wait: ${COD_REMITTANCE_DAYS}`,
+      post: "Seller paid on confirmation — no courier remittance cycle",
+    },
   },
 } as const;
 const ASSISTANT_MODES: {
@@ -572,11 +758,19 @@ const PRODUCT_ICONS: Record<string, typeof Leaf> = {
 };
 type SceneProps = { state: DemoState; dispatch: Dispatch<DemoAction> };
 type GuideFlow = "negotiate" | "compare" | "deliver";
-const GUIDE: { id: GuideFlow; n: string; label: string; target: string }[] = [
-  { id: "negotiate", n: "01", label: "Negotiate", target: "studio-title" },
-  { id: "compare", n: "02", label: "Compare", target: "comparison-title" },
-  { id: "deliver", n: "03", label: "Deliver", target: "delivery-title" },
+const GUIDE: { id: GuideFlow; n: string; target: string }[] = [
+  { id: "negotiate", n: "01", target: "studio-title" },
+  { id: "compare", n: "02", target: "comparison-title" },
+  { id: "deliver", n: "03", target: "delivery-title" },
 ];
+
+/** Defer mounting heavy scenes until they're near the viewport — keeps the
+ *  first paint light (SVG scenes + motion values don't cost until needed). */
+function LazyMount({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "300px" });
+  return <div ref={ref}>{inView ? children : null}</div>;
+}
 
 function WholesaleScene({
   state,
@@ -593,6 +787,10 @@ function WholesaleScene({
     subtotal,
     delivery,
     marketDelta,
+    viewers,
+    weekDelta,
+    courier,
+    payment,
     draft,
     messages,
     quantityIndex: selectedQuantity,
@@ -633,10 +831,11 @@ function WholesaleScene({
         ];
   const next = () => {
     if (state.step === 5) dispatch({ type: "restart" });
-    else if (state.step === 2) {
+    else if (state.step === 2 && state.assistant !== "draft") {
       dispatch({ type: "assistant", mode: "draft" });
       assistantHeading.current?.focus();
-    } else dispatch({ type: "advance" });
+    } else if (state.step === 2) dispatch({ type: "use-draft" });
+    else dispatch({ type: "advance" });
   };
   const above = marketDelta > 0;
   const DeltaIcon = above ? TrendingUp : TrendingDown;
@@ -693,7 +892,9 @@ function WholesaleScene({
           >
             <ArrowLeft size={17} aria-hidden="true" />
           </button>
-          <span aria-hidden="true">0{state.productIndex + 1} / 03</span>
+          <span aria-hidden="true">
+            0{state.productIndex + 1} / 0{catalog.length}
+          </span>
           <button
             type="button"
             aria-label="Next product story"
@@ -720,6 +921,9 @@ function WholesaleScene({
         <div className={`studio-product studio-product-${product.id}`}>
           <div className="studio-artwork">
             {product.id === "rice" && <Fieldscape />}
+            {["earbuds", "sneakers", "kettle"].includes(product.id) && (
+              <RetailScene product={product} />
+            )}
             <span className="studio-artwork-label">
               THE EVERYDAY COLLECTION <span>0{state.productIndex + 1}</span>
             </span>
@@ -739,21 +943,94 @@ function WholesaleScene({
             <span className="commerce-eyebrow">Illustrative product</span>
             <h5>{product.name}</h5>
             <p>{product.detail}</p>
+            <p className="studio-live-row">
+              <span className="studio-viewers">
+                {viewers} buyers viewing this item
+              </span>
+              <span className="studio-tick">
+                this week {weekDelta >= 0 ? "+" : ""}
+                {weekDelta.toFixed(1)}%
+              </span>
+            </p>
+            <label className="studio-try">
+              Try your price
+              <input
+                type="number"
+                inputMode="numeric"
+                placeholder={money(listedUnit)}
+                defaultValue={state.customPrice ?? ""}
+                aria-label="Try your own price — totals update live"
+                onChange={(e) =>
+                  dispatch({
+                    type: "price",
+                    value: e.target.value ? Number(e.target.value) : null,
+                  })
+                }
+              />
+            </label>
             <fieldset className="studio-quantity">
-              <legend>Order size · {product.plural}</legend>
+              <legend>Courier route</legend>
               <div>
-                {product.quantities.map((value, i) => (
+                {Object.entries(COURIERS).map(([key, c]) => (
                   <button
                     type="button"
-                    key={value}
-                    aria-pressed={selectedQuantity === i}
-                    onClick={() => dispatch({ type: "quantity", index: i })}
+                    key={key}
+                    aria-pressed={courier === key}
+                    title={c.route}
+                    onClick={() =>
+                      dispatch({
+                        type: "courier",
+                        value: key as keyof typeof COURIERS,
+                      })
+                    }
                   >
-                    {value}
+                    {key}
                   </button>
                 ))}
               </div>
             </fieldset>
+            <fieldset className="studio-quantity">
+              <legend>Pay how?</legend>
+              <div>
+                <button
+                  type="button"
+                  aria-pressed={payment === "prepaid"}
+                  onClick={() =>
+                    dispatch({ type: "payment", value: "prepaid" })
+                  }
+                >
+                  Escrow
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={payment === "cod"}
+                  onClick={() => dispatch({ type: "payment", value: "cod" })}
+                >
+                  COD
+                </button>
+              </div>
+            </fieldset>
+            {product.quantities.length > 1 ? (
+              <fieldset className="studio-quantity">
+                <legend>Order size · {product.plural}</legend>
+                <div>
+                  {product.quantities.map((value, i) => (
+                    <button
+                      type="button"
+                      key={value}
+                      aria-pressed={selectedQuantity === i}
+                      onClick={() => dispatch({ type: "quantity", index: i })}
+                    >
+                      {value}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            ) : (
+              <p className="studio-quantity-static">
+                <span>{quantity}</span> {product.unit} · per order
+              </p>
+            )}
             {/* price tag */}
             <dl className="studio-figures">
               <div>
@@ -785,8 +1062,13 @@ function WholesaleScene({
           <div className="studio-panel-heading">
             <MessageSquare size={17} aria-hidden="true" />
             <div>
-              <h5>At the negotiation table</h5>
-              <span>{copy.pairLabel} · Scripted example</span>
+              <h5>{copy.conversationTitle}</h5>
+              <span>
+                {copy.pairLabel} · Scripted example
+                {state.mode === "b2c"
+                  ? " · Seller's AI agent answers every buyer at once"
+                  : ""}
+              </span>
             </div>
           </div>
           <div className="studio-progress">
@@ -796,7 +1078,7 @@ function WholesaleScene({
           <ol
             ref={log}
             className="studio-messages"
-            aria-label="Example buyer and supplier conversation"
+            aria-label={copy.conversationAria}
             aria-live="polite"
             aria-relevant="additions text"
           >
@@ -806,14 +1088,11 @@ function WholesaleScene({
                   <MessageSquare size={26} aria-hidden="true" />
                 </span>
                 <h6>
-                  You’re the buyer.
+                  {copy.emptyLead}
                   <br />
-                  Ask for a price.
+                  {copy.emptyHint}
                 </h6>
-                <p>
-                  Five short steps: enquire, get a quote, counter, agree — with
-                  a helper beside you.
-                </p>
+                <p>{copy.emptyBody}</p>
                 <span>Nothing is sent outside this preview.</span>
               </li>
             )}
@@ -862,15 +1141,46 @@ function WholesaleScene({
           </ol>
           {state.step === 3 && (
             <div className="studio-draft">
-              <span>YOUR DRAFT · NOT SENT</span>
+              <span>{copy.draftChip}</span>
               <p>{draft}</p>
               <button
                 type="button"
                 onClick={() => dispatch({ type: "discard-draft" })}
               >
-                Discard draft
+                {copy.discard}
               </button>
             </div>
+          )}
+          {state.step >= 1 && state.step < 5 && (
+            <form
+              className="studio-ask"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const input = e.currentTarget.querySelector("input");
+                if (input?.value.trim()) {
+                  dispatch({ type: "send", text: input.value });
+                  input.value = "";
+                }
+              }}
+            >
+              <input
+                type="text"
+                placeholder={
+                  state.mode === "b2c"
+                    ? "Ask the seller anything…"
+                    : "Ask the supplier anything…"
+                }
+                aria-label={
+                  state.mode === "b2c"
+                    ? "Ask the seller a question"
+                    : "Ask the supplier a question"
+                }
+                maxLength={200}
+              />
+              <button type="submit" aria-label="Send message">
+                <ArrowRight size={15} aria-hidden="true" />
+              </button>
+            </form>
           )}
           <div className="studio-conversation-actions">
             <button
@@ -893,7 +1203,9 @@ function WholesaleScene({
             </button>
             <span>
               {state.step === 3
-                ? "Review the draft, then send it only in this demo."
+                ? state.mode === "b2c"
+                  ? "Review the order, then place it only in this demo."
+                  : "Review the draft, then send it only in this demo."
                 : state.step === 5
                   ? "Illustrative agreement. No order has been placed."
                   : "You control each step. No real messages or orders."}
@@ -907,7 +1219,10 @@ function WholesaleScene({
               <h5 ref={assistantHeading} tabIndex={-1} id="assistant-title">
                 A little help, beside you.
               </h5>
-              <span>Assistant concept · Scripted, not live AI</span>
+              <span>
+                Assistant concept · Scripted, not live AI · Based on general
+                market data — turn on AI learning to personalise
+              </span>
             </div>
           </div>
           <div
@@ -924,11 +1239,19 @@ function WholesaleScene({
                 aria-pressed={state.assistant === mode.id}
                 onClick={() => dispatch({ type: "assistant", mode: mode.id })}
               >
-                {mode.label}
+                {mode.id === "draft" && state.mode === "b2c"
+                  ? "Draft order"
+                  : mode.label}
               </button>
             ))}
           </div>
           <div className="studio-advice" aria-live="polite" aria-atomic="true">
+            {state.step >= 2 && (
+              <span className="studio-attribution">
+                Based on general market data — personalises after 3 completed
+                trades
+              </span>
+            )}
             {state.step < 2 ? (
               <>
                 <span className="studio-advice-label">CONTEXT FIRST</span>
@@ -939,7 +1262,7 @@ function WholesaleScene({
                 </h6>
                 <p>
                   {state.mode === "b2c"
-                    ? "Start the example and reveal the seller's price. Then explore the explanation or a suggested reply."
+                    ? "Start the example and reveal the seller's price. Then explore the explanation or a suggested order."
                     : "Start the example and reveal the supplier quote. Then explore the explanation, a sample counter-offer, or a suggested reply."}
                 </p>
               </>
@@ -1024,10 +1347,7 @@ function WholesaleScene({
                     )}
                   </span>
                 </blockquote>
-                <p>
-                  Review before using. This sample asks for terms; it does not
-                  accept a deal for you.
-                </p>
+                <p>{copy.draftAdvice}</p>
               </>
             )}
           </div>
@@ -1044,16 +1364,18 @@ function WholesaleScene({
             }
           >
             {state.step < 2
-              ? state.mode === "b2c"
-                ? "Available after seller confirms"
-                : "Available after supplier quote"
+              ? copy.useAfterQuote
               : state.step === 3
-                ? "Draft ready for your review"
+                ? state.mode === "b2c"
+                  ? "Order ready for your review"
+                  : "Draft ready for your review"
                 : state.step > 3
-                  ? "Draft used in this example"
+                  ? state.mode === "b2c"
+                    ? "Order placed in this example"
+                    : "Draft used in this example"
                   : state.assistant !== "draft"
-                    ? "Review suggested reply"
-                    : "Use this draft in the demo"}
+                    ? copy.reviewDraft
+                    : copy.useDraft}
             <ArrowRight size={14} aria-hidden="true" />
           </button>
           <p className="studio-assistant-note">
@@ -1063,10 +1385,9 @@ function WholesaleScene({
       </div>
       <div className="studio-disclaimer">
         <span>
-          Illustrative negotiation · Sample assistant suggestions · No order is
-          placed
+          {copy.disclaimer} · Sample assistant suggestions · No order is placed
         </span>
-        <span>Changing product or quantity resets the example.</span>
+        <span>{copy.resetNote}</span>
       </div>
     </article>
   );
@@ -1206,11 +1527,12 @@ function ComparisonScene({ state, dispatch }: SceneProps) {
 
 const ROUTE =
   "M80 162 L177 162 Q190 162 190 148 L190 103 Q190 89 205 89 L289 89 Q303 89 303 74 L303 52 L410 52";
-const ROUTE_PROGRESS = [0.04, 0.53, 1];
+const ROUTE_PROGRESS = [0.02, 0.2, 0.53, 0.85, 1];
 
 function DeliveryScene({ state, dispatch }: SceneProps) {
   const { product, quantity } = getDemo(state);
   const stage = state.deliveryStep;
+  const escrow = MODE_COPY[state.mode].escrow;
   const reduce = useReducedMotion();
   const routeRef = useRef<SVGPathElement>(null);
   const progress = useMotionValue(ROUTE_PROGRESS[0]);
@@ -1305,7 +1627,7 @@ function DeliveryScene({ state, dispatch }: SceneProps) {
             cx="410"
             cy="52"
             r="8"
-            fill={stage === 2 ? "#5143d9" : "#fff"}
+            fill={stage === 4 ? "#5143d9" : "#fff"}
             stroke="#5143d9"
             strokeWidth="3"
           />
@@ -1326,12 +1648,48 @@ function DeliveryScene({ state, dispatch }: SceneProps) {
           <MapPin size={13} aria-hidden="true" /> Illustrative route
         </span>
         <div
+          className="commerce-track-toggle"
+          role="group"
+          aria-label="Tracking detail level"
+        >
+          <button
+            type="button"
+            aria-pressed={state.trackingView === "standard"}
+            onClick={() => dispatch({ type: "trackview", value: "standard" })}
+          >
+            Standard
+          </button>
+          <button
+            type="button"
+            aria-pressed={state.trackingView === "detailed"}
+            onClick={() => dispatch({ type: "trackview", value: "detailed" })}
+          >
+            Detailed <span className="commerce-pro">Pro</span>
+          </button>
+        </div>
+        <div className="commerce-track-stats" aria-live="polite">
+          <span>
+            {stage === 4 ? "Arrived" : `ETA ~${STAGE_ETA_MIN[stage]} min`}
+          </span>
+          {state.trackingView === "detailed" && stage !== 4 && (
+            <>
+              <span>{STAGE_SPEED_KMH[stage]} km/h</span>
+              {STAGE_EVENTS[stage] && (
+                <span className="commerce-event">{STAGE_EVENTS[stage]}</span>
+              )}
+              <span className="commerce-live-hint">
+                Live position, speed &amp; stops — detailed tracking
+              </span>
+            </>
+          )}
+        </div>
+        <div
           className="commerce-delivery-status"
           aria-live="polite"
           aria-atomic="true"
         >
           <span className="commerce-delivery-icon">
-            {stage === 2 ? (
+            {stage === 4 ? (
               <PackageCheck size={21} aria-hidden="true" />
             ) : (
               <Truck size={21} aria-hidden="true" />
@@ -1344,21 +1702,17 @@ function DeliveryScene({ state, dispatch }: SceneProps) {
             </small>
             <strong>{STAGES[stage]}</strong>
           </span>
-          <span className="commerce-step-count">0{stage + 1} / 03</span>
+          <span className="commerce-step-count">0{stage + 1} / 05</span>
         </div>
       </div>
       <div className="commerce-delivery-escrow" aria-live="polite">
         <span className="commerce-escrow-chip">
           <LockKeyhole size={13} aria-hidden="true" />
-          {stage === 2
-            ? "Payment released — delivery confirmed"
-            : "Payment held in escrow"}
+          {stage === 4 ? escrow.released : escrow.held}
         </span>
         <span className="commerce-remit-chip">
           <Timer size={13} aria-hidden="true" />
-          {stage === 2
-            ? "Seller paid on confirmation — not after a courier remittance cycle"
-            : `Typical courier COD remittance: ${COD_REMITTANCE_DAYS}`}
+          {stage === 4 ? escrow.post : escrow.pre}
         </span>
       </div>
       <div className="commerce-delivery-controls">
@@ -1375,8 +1729,8 @@ function DeliveryScene({ state, dispatch }: SceneProps) {
           className="commerce-text-button"
           onClick={() => dispatch({ type: "delivery" })}
         >
-          {stage === 2 ? "Replay journey" : "Next step"}
-          {stage === 2 ? (
+          {stage === 4 ? "Replay journey" : "Next step"}
+          {stage === 4 ? (
             <RotateCcw size={14} aria-hidden="true" />
           ) : (
             <ArrowRight size={14} aria-hidden="true" />
@@ -1540,9 +1894,11 @@ function SupportingScenes({ state }: { state: DemoState }) {
 function DemoGuide({
   done,
   active,
+  mode,
 }: {
   done: Record<GuideFlow, boolean>;
   active: GuideFlow;
+  mode: DemoState["mode"];
 }) {
   const count = Object.values(done).filter(Boolean).length;
   const jump = (target: string) => {
@@ -1562,7 +1918,7 @@ function DemoGuide({
         <small>3 short flows · about 2 minutes · nothing is real</small>
       </span>
       <ol>
-        {GUIDE.map((flow) => (
+        {GUIDE.map((flow, i) => (
           <li key={flow.id}>
             <button
               type="button"
@@ -1573,7 +1929,7 @@ function DemoGuide({
               <span aria-hidden="true">
                 {done[flow.id] ? <Check size={11} /> : flow.n}
               </span>
-              {flow.label}
+              {MODE_COPY[mode].guide[i]}
             </button>
           </li>
         ))}
@@ -1605,7 +1961,7 @@ function shellReducer(shell: Shell, action: DemoAction): Shell {
     done: {
       negotiate: shell.done.negotiate || demo.step === 5,
       compare: shell.done.compare || action.type === "offer",
-      deliver: shell.done.deliver || demo.deliveryStep === 2,
+      deliver: shell.done.deliver || demo.deliveryStep === 4,
     },
   };
 }
@@ -1620,6 +1976,19 @@ export function InsideTijarah() {
     : !done.compare
       ? "compare"
       : "deliver";
+  const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    if (!expanded) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setExpanded(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [expanded]);
   return (
     <div id="inside-tijarah" className="commerce-showcase">
       <Reveal>
@@ -1663,27 +2032,53 @@ export function InsideTijarah() {
         </div>
       </Reveal>
       <Reveal>
-        <DemoGuide done={done} active={active} />
+        <DemoGuide done={done} active={active} mode={state.mode} />
       </Reveal>
-      <Reveal>
-        <WholesaleScene
-          state={state}
-          dispatch={dispatch}
-          beacon={!interacted}
-        />
-      </Reveal>
+      <div className={expanded ? "commerce-expand is-open" : "commerce-expand"}>
+        <button
+          type="button"
+          className="commerce-expand-btn"
+          onClick={() => setExpanded(true)}
+          aria-expanded={expanded}
+        >
+          <Maximize2 size={14} aria-hidden="true" /> Full screen
+        </button>
+        <Reveal>
+          <WholesaleScene
+            state={state}
+            dispatch={dispatch}
+            beacon={!interacted}
+          />
+        </Reveal>
+        {expanded && (
+          <button
+            type="button"
+            className="commerce-expand-close"
+            onClick={() => setExpanded(false)}
+            aria-label="Close full screen view"
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
+        )}
+      </div>
       <div className="commerce-main-grid">
         <Reveal>
-          <ComparisonScene state={state} dispatch={dispatch} />
+          <LazyMount>
+            <ComparisonScene state={state} dispatch={dispatch} />
+          </LazyMount>
         </Reveal>
         <Reveal delay={0.08}>
-          <DeliveryScene state={state} dispatch={dispatch} />
+          <LazyMount>
+            <DeliveryScene state={state} dispatch={dispatch} />
+          </LazyMount>
         </Reveal>
       </div>
-      <SupportingScenes
-        key={`${state.productIndex}-${state.quantityIndex}`}
-        state={state}
-      />
+      <LazyMount>
+        <SupportingScenes
+          key={`${state.productIndex}-${state.quantityIndex}`}
+          state={state}
+        />
+      </LazyMount>
       <Reveal>
         <div className="commerce-card ai-receipt" role="note">
           <div className="ai-receipt-head">
@@ -1707,9 +2102,19 @@ export function InsideTijarah() {
               💳 Payment details <em>never</em>
             </span>
           </div>
+          <div className="ai-receipt-attrib">
+            <span>Every suggestion carries its source:</span>
+            <div>
+              <em>“Based on general market data”</em>
+              <em>“Sharpened by your trade patterns”</em>
+              <em>“Sharpened by both sides’ trade patterns”</em>
+              <em>“Sharpened by the counterparty’s trade patterns”</em>
+            </div>
+          </div>
           <small>
-            Founding Members teach it first — and every member gets a receipt
-            page showing exactly what the AI holds about them.
+            Founding Members teach it first — with locked launch pricing and
+            Tijarah Protection on their first orders. Every member gets a
+            receipt page showing exactly what the AI holds about them.
           </small>
         </div>
       </Reveal>
