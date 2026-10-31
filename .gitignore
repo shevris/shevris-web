@@ -11,6 +11,7 @@ next-env.d.ts
 
 # Local design studies — never production assets
 brand-concepts.html
+tracking-compare.html
 shevris-concept-*.svg
 shevris-concepts-*.png
 shevris-cutline-lockup.svg
