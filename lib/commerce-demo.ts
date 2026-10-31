@@ -75,7 +75,9 @@ export const COURIERS = {
   overland: { base: 200, perKg: 24, route: "Sheikhupura → Karachi · overland" },
 } as const;
 
-export const COD_REMITTANCE_DAYS = "7–14 working days";
+/** How long the courier holds collected COD before remitting it onward.
+ *  Leopards (the first carrier) remits in about a week. */
+export const COD_REMITTANCE_DAYS = "≈7 working days";
 
 /** Everyday-shopping catalogue (B2C) — single units, retail prices. Same
  *  scene skeleton as wholesale; the trade-off scene becomes seller
@@ -160,11 +162,21 @@ export type DemoState = {
   offerIndex: number;
   deliveryStep: number;
   assistant: AssistantMode;
+  customMessages: { speaker: string; text: string }[];
+  customPrice: number | null;
+  courier: keyof typeof COURIERS;
+  payment: "cod" | "prepaid";
+  trackingView: "standard" | "detailed";
 };
 export type DemoAction =
   | { type: "product" | "quantity" | "offer"; index: number }
   | { type: "assistant"; mode: AssistantMode }
   | { type: "mode"; mode: DemoMode }
+  | { type: "send"; text: string }
+  | { type: "price"; value: number | null }
+  | { type: "courier"; value: keyof typeof COURIERS }
+  | { type: "payment"; value: "cod" | "prepaid" }
+  | { type: "trackview"; value: "standard" | "detailed" }
   | {
       type: "advance" | "use-draft" | "discard-draft" | "restart" | "delivery";
     };
@@ -177,6 +189,11 @@ export const INITIAL_DEMO: DemoState = {
   offerIndex: 0,
   deliveryStep: 0,
   assistant: "explain",
+  customMessages: [],
+  customPrice: null,
+  courier: "intercity",
+  payment: "prepaid",
+  trackingView: "standard",
 };
 
 export const catalogFor = (mode: DemoMode) =>
@@ -210,6 +227,22 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
       };
     case "assistant":
       return { ...state, assistant: action.mode };
+    case "price":
+      return { ...state, customPrice: action.value };
+    case "courier":
+      return { ...state, courier: action.value };
+    case "payment":
+      return { ...state, payment: action.value };
+    case "send":
+      return action.text.trim()
+        ? {
+            ...state,
+            customMessages: [
+              ...state.customMessages,
+              { speaker: "Buyer", text: action.text.trim() },
+            ],
+          }
+        : state;
     case "use-draft":
       return state.step === 2
         ? { ...state, step: 3, assistant: "draft" }
@@ -228,7 +261,9 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         quantityIndex: state.quantityIndex,
       };
     case "delivery":
-      return { ...state, deliveryStep: (state.deliveryStep + 1) % 3 };
+      return { ...state, deliveryStep: (state.deliveryStep + 1) % 5 };
+    case "trackview":
+      return { ...state, trackingView: action.value };
   }
 }
 
@@ -262,29 +297,38 @@ export function getDemo(state: DemoState) {
   const quantity = product.quantities[quantityIndex];
   const listedUnit = product.rates[quantityIndex];
   const counterUnit = Math.round(listedUnit * 0.98);
-  const unit = state.step === 5 ? counterUnit : listedUnit;
-  const delivery = freight(product, quantity, "intercity");
+  // B2C never negotiates — the confirmed price stays the listed price.
+  const unit = state.step === 5 && !isB2c ? counterUnit : listedUnit;
+  const delivery = freight(product, quantity, state.courier);
   const totalKg = product.weightKg * quantity;
   const sellerLabel = isB2c ? "Seller" : "Supplier";
+  const customUnit = state.customPrice;
+  // Deterministic per-product market noise — sellers don't price identically.
+  const jitterPct =
+    ((product.id.charCodeAt(product.id.length - 1) % 5) - 2) / 100;
   const offers = [
     {
       name: `${sellerLabel} A`,
-      unit,
+      unit: customUnit ?? unit,
       delivery: state.step >= 2 ? delivery : null,
       note:
         state.step === 5
-          ? "Demo negotiated terms"
-          : `Featured conversation · ${COURIERS.intercity.route}`,
+          ? isB2c
+            ? "Escrow checkout · paid into Tijarah"
+            : "Demo negotiated terms"
+          : `Featured conversation · ${COURIERS[state.courier].route}`,
     },
     {
       name: `${sellerLabel} B`,
-      unit: listedUnit + product.premium,
+      unit: Math.round((listedUnit + product.premium) * (1 + jitterPct)),
       delivery: 0,
       note: "Delivery included in price",
     },
     {
       name: `${sellerLabel} C`,
-      unit: listedUnit - Math.round(product.premium * 0.4),
+      unit: Math.round(
+        (listedUnit - Math.round(product.premium * 0.4)) * (1 - jitterPct / 2),
+      ),
       delivery: freight(product, quantity, "overland"),
       note: `Lower unit price · ${COURIERS.overland.route}`,
     },
@@ -298,8 +342,11 @@ export function getDemo(state: DemoState) {
     .filter((total): total is number => total !== null);
   const bestTotal = knownTotals.length ? Math.min(...knownTotals) : null;
   // B2C doesn't negotiate — the same step becomes the escrow checkout.
+  const isCod = state.payment === "cod";
   const draft = isB2c
-    ? `I'd like to order this — pay into Tijarah's escrow now, release to the seller when it arrives? ${product.question}`
+    ? isCod
+      ? `I'd like to order this — I'll pay the courier at my door. ${product.question}`
+      : `I'd like to order this — pay into Tijarah's escrow now, release to the seller when it arrives? ${product.question}`
     : `Would ${money(counterUnit)} per ${product.unit} work for ${quantity} ${product.plural}, with payment on delivery? ${product.question}`;
   const messages = isB2c
     ? [
@@ -311,20 +358,26 @@ export function getDemo(state: DemoState) {
         {
           step: 2,
           speaker: `${sellerLabel} A`,
-          text: `In stock — ${money(listedUnit)} plus ${money(delivery)} delivery, dispatched tomorrow. Tijarah holds your payment in escrow until you confirm it arrived as described.`,
+          text: isCod
+            ? `In stock — ${money(listedUnit)} plus ${money(delivery)} delivery, dispatched tomorrow. The courier collects the payment at your door.`
+            : `In stock — ${money(listedUnit)} plus ${money(delivery)} delivery, dispatched tomorrow. Tijarah holds your payment in escrow until you confirm it arrived as described.`,
         },
         { step: 4, speaker: "Buyer", text: draft },
         {
           step: 5,
           speaker: `${sellerLabel} A`,
-          text: `Confirmed at ${money(listedUnit)} plus ${money(delivery)} delivery — the escrow hold is noted. We'll dispatch tomorrow; funds release to us only after you confirm receipt.`,
+          text: isCod
+            ? `Confirmed at ${money(listedUnit)} plus ${money(delivery)} delivery — cash on delivery. We'll dispatch tomorrow.`
+            : `Confirmed at ${money(listedUnit)} plus ${money(delivery)} delivery — the escrow hold is noted. We'll dispatch tomorrow; funds release to us only after you confirm receipt.`,
         },
         {
           step: 5,
           speaker: "system",
-          text: "Tijarah keeps this order on record — payment stays in escrow until delivery is confirmed. Contact details stay private until an order is placed.",
+          text: isCod
+            ? "Tijarah keeps this order on record — the courier collects cash at your door and remits it for the seller's payout. The courier is booked by Tijarah, so contact details stay private."
+            : "Tijarah keeps this order on record — payment stays in escrow until delivery is confirmed. The courier is booked by Tijarah, so contact details stay private.",
         },
-      ]
+      ].filter((message) => message.step <= state.step)
     : [
         {
           step: 1,
@@ -345,12 +398,30 @@ export function getDemo(state: DemoState) {
         {
           step: 5,
           speaker: "system",
-          text: "Tijarah keeps this example on record — agreed terms, a proper invoice, coordinated delivery and support for both sides. Contact details stay private until an order is placed.",
+          text: "Tijarah keeps this example on record — agreed terms, a proper invoice, coordinated delivery and support for both sides. The courier is booked by Tijarah, so contact details stay private.",
         },
       ].filter((message) => message.step <= state.step);
+  // Every free-text buyer message gets a reply from the seller's AI agent —
+  // labeled, bounds-referenced, never committing to final terms (that stays
+  // on the deterministic checkout screen, per agentic-commerce guardrails).
+  const agentReplies = state.customMessages.map(() => ({
+    step: state.step,
+    speaker: `${sellerLabel} A · AI agent`,
+    text: isB2c
+      ? `Noted — my seller's bounds keep this item at ${money(listedUnit)}; I can adjust delivery timing or answer questions instantly for every buyer at once. Final terms always confirm on the checkout screen before payment.`
+      : `Noted — my supplier's bounds put the floor near ${money(Math.round(listedUnit * 0.95))} per ${product.unit}; I'm negotiating within them instantly for every buyer at once. The supplier personally confirms final terms before dispatch.`,
+  }));
+  const allMessages = [
+    ...messages,
+    ...state.customMessages.flatMap((m, i) => [
+      { ...m, step: state.step },
+      agentReplies[i],
+    ]),
+  ];
   return {
     product,
     quantity,
+    quantityIndex,
     totalKg,
     listedUnit,
     counterUnit,
@@ -361,6 +432,10 @@ export function getDemo(state: DemoState) {
     offers,
     bestTotal,
     draft,
-    messages,
+    messages: allMessages,
+    courier: state.courier,
+    payment: state.payment,
+    viewers: 2 + (state.productIndex % 3),
+    weekDelta: ((product.id.charCodeAt(0) % 7) - 3) * 0.8,
   };
 }
