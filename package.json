@@ -39,8 +39,8 @@
     "fast-glob": "^3.3.3"
   },
   "devDependencies": {
-    "@commitlint/cli": "21.2.3",
-    "@commitlint/config-conventional": "21.2.3",
+    "@commitlint/cli": "21.2.4",
+    "@commitlint/config-conventional": "21.2.4",
     "@tailwindcss/postcss": "4.3.3",
     "@types/headroom.js": "^0.12.4",
     "@types/node": "^26.6.3",
