@@ -1,0 +1,13 @@
+# Gitleaks config — extends the default ruleset (~150 secret patterns).
+title = "shevris-web gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Repo-specific safe patterns — NOT real secrets"
+paths = [
+  '''^\.env\.example$''',
+  '''__tests__/''',
+  '''\.spec\.ts$''',
+]
