@@ -48,4 +48,4 @@ jobs:
           osv-scanner --version | grep -q "${OSV_VERSION}"
 
       - name: Scan lockfile for known vulnerabilities
-        run: osv-scanner scan lockfile package-lock.json
+        run: osv-scanner scan -L package-lock.json
