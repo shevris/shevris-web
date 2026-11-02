@@ -45,7 +45,7 @@ jobs:
           echo "${OSV_SHA256} osv-scanner" | sha256sum --check -
           sudo install -m 0755 osv-scanner /usr/local/bin/osv-scanner
           rm -f osv-scanner
-          test "$(osv-scanner --version | awk '{print $NF}')" = "${OSV_VERSION}"
+          osv-scanner --version | grep -q "${OSV_VERSION}"
 
       - name: Scan lockfile for known vulnerabilities
         run: osv-scanner scan lockfile package-lock.json
