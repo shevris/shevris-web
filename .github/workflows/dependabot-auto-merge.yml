@@ -1,0 +1,155 @@
+# Dependabot auto-merge — merges low-risk devDependency bumps once CI is green.
+# Ported from Tijarah-BE's workflow of the same design.
+#
+# Design (per dependabot/fetch-metadata README + free-tier constraints):
+#   - `pull_request_target` so the workflow gets a write-capable GITHUB_TOKEN
+#     (dependabot `pull_request` runs are read-only) — it runs the BASE branch's
+#     copy of this file, so PRs can't tamper with it.
+#   - `fetch-metadata` classifies the PR: only direct devDependencies with
+#     patch/minor bumps qualify. Prod deps, majors, grouped PRs and anything
+#     unclassifiable stay human-reviewed. Eligible PRs get the
+#     `automerge-eligible` label — the durable handoff to the merge arm
+#     (fetch-metadata only understands pull_request events; it cannot run
+#     under workflow_run, which has no pull_request context).
+#   - Event-driven, NOT `gh pr checks --watch`: the classify arm merges when
+#     checks are already green, and the workflow_run arm re-evaluates on each
+#     CI completion — whichever finishes last performs the merge. NOTE:
+#     workflow_run reads this file from the DEFAULT branch (main), so that
+#     arm activates after the next dev→main release.
+#   - No `gh pr review --approve` and no `gh pr merge --auto`: this private
+#     repo has no rulesets (GitHub Pro feature), so native auto-merge has
+#     nothing to gate on. `gh pr checks` is the gate instead.
+#   - Merge-queue semantics: when a labeled PR's checks are green but
+#     mergeStateStatus is BEHIND, both arms request `@dependabot rebase`
+#     first (its own push re-runs CI normally); `gh pr update-branch` is the
+#     fallback for PRs dependabot refuses to rebase (human repair commits).
+name: Dependabot Auto-Merge
+
+on:
+  pull_request_target:
+    branches:
+      - development
+    types:
+      - opened
+      - synchronize
+      - reopened
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write # label management uses the issues API
+  checks: read # gh pr checks queries statusCheckRollup — denied without this
+  statuses: read # commit status contexts for the same gate
+
+jobs:
+  classify:
+    name: Classify + merge if already green
+    if: |
+      github.event_name == 'pull_request_target' &&
+      github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # PRs may carry human repair commits (e.g. lockfile fixes pushed to
+          # a dependabot branch) — still classify them by title.
+          skip-commit-verification: true
+
+      - name: Label eligibility and merge if all checks already green
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          ELIGIBLE: >-
+            ${{
+              steps.metadata.outputs.dependency-type == 'direct:development' &&
+              (steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+               steps.metadata.outputs.update-type == 'version-update:semver-minor')
+            }}
+        run: |
+          gh label create automerge-eligible --force --repo "$REPO" \
+            --description "Dependabot PR qualifies for auto-merge (devDep patch/minor)" || true
+          if [ "$ELIGIBLE" = "true" ]; then
+            gh pr edit "$PR_URL" --add-label automerge-eligible
+            # Exclude this workflow's own checks — its in-flight run would
+            # otherwise always count as "not green" and a failed run would
+            # permanently poison the merge arm. Empty result means no checks
+            # registered yet → never treat as green.
+            states=$(gh pr checks "$PR_URL" --json state,workflow \
+              --jq '[.[] | select(.workflow != "Dependabot Auto-Merge") | .state]')
+            bad=$(echo "$states" | jq 'if length == 0 then 1 else [.[] | select(. != "SUCCESS" and . != "SKIPPED" and . != "NEUTRAL")] | length end')
+            mstate=$(gh pr view "$PR_URL" --json mergeStateStatus --jq .mergeStateStatus)
+            if [ "$bad" -eq 0 ] && [ "$mstate" = "BEHIND" ]; then
+              asked=$(gh pr view "$PR_URL" --json comments \
+                --jq '[.comments[] | select(.author.login == "github-actions[bot]" and (.body | contains("@dependabot rebase")))] | length')
+              if [ "$asked" -eq 0 ]; then
+                gh pr comment "$PR_URL" --body "@dependabot rebase" && echo "Base stale — requested dependabot rebase" || true
+              else
+                gh pr update-branch "$PR_URL" && echo "Rebase ignored — updated branch (checks need approval)" || true
+              fi
+            elif [ "$bad" -eq 0 ]; then
+              gh pr merge "$PR_URL" --squash --delete-branch
+              echo "Merged (checks already green)"
+            else
+              echo "Eligible; checks not green yet — workflow_run arm merges on completion"
+            fi
+          else
+            gh pr edit "$PR_URL" --remove-label automerge-eligible || true
+            echo "Not eligible (prod deps / major / unclassifiable) — human review"
+          fi
+
+  merge-labeled:
+    name: Merge eligible PR after checks complete
+    if: |
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success'
+    concurrency:
+      group: dependabot-automerge-wfr-${{ github.event.workflow_run.id }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Merge eligible dependabot PRs with all-green checks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PULL_REQUESTS: ${{ toJSON(github.event.workflow_run.pull_requests) }}
+        run: |
+          echo "$PULL_REQUESTS" | jq -r '.[] | select(.base.ref == "development") | .number' | while read -r pr; do
+            info=$(gh pr view "$pr" --repo "$REPO" --json author,labels,state)
+            author=$(echo "$info" | jq -r .author.login)
+            labeled=$(echo "$info" | jq '[.labels[].name] | index("automerge-eligible") != null')
+            open=$(echo "$info" | jq -r .state)
+            # A sibling workflow_run may have merged the PR first — skip
+            # non-open PRs instead of erroring on gh pr merge.
+            if [ "$open" != "OPEN" ] || [ "$author" != "dependabot[bot]" ] || [ "$labeled" != "true" ]; then
+              continue
+            fi
+            states=$(gh pr checks "$pr" --repo "$REPO" --json state,workflow \
+              --jq '[.[] | select(.workflow != "Dependabot Auto-Merge") | .state]')
+            bad=$(echo "$states" | jq 'if length == 0 then 1 else [.[] | select(. != "SUCCESS" and . != "SKIPPED" and . != "NEUTRAL")] | length end')
+            if [ "$bad" -gt 0 ]; then
+              echo "PR #$pr: not all green — skipping"
+              continue
+            fi
+            mstate=$(gh pr view "$pr" --repo "$REPO" --json mergeStateStatus --jq .mergeStateStatus)
+            if [ "$mstate" = "BEHIND" ]; then
+              asked=$(gh pr view "$pr" --repo "$REPO" --json comments \
+                --jq '[.comments[] | select(.author.login == "github-actions[bot]" and (.body | contains("@dependabot rebase")))] | length')
+              if [ "$asked" -eq 0 ]; then
+                gh pr comment "$pr" --repo "$REPO" --body "@dependabot rebase" && echo "PR #$pr behind base — requested dependabot rebase" || true
+              else
+                gh pr update-branch "$pr" --repo "$REPO" && echo "PR #$pr rebase ignored — updated branch (checks need approval)" || true
+              fi
+              continue
+            fi
+            if gh pr merge "$pr" --repo "$REPO" --squash --delete-branch; then
+              echo "Merged #$pr"
+            fi
+          done

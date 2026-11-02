@@ -1,0 +1,43 @@
+# Stale PR sweep — keeps the open-PR list honest without punishing real work.
+#
+# Policy (research-informed, conservative for a small team):
+#   - Label "stale" after 45 days idle, auto-close 14 days later unless activity
+#     resumes. Any comment/update/push restarts the clock.
+#   - Issues are exempt (days-before-issue-*: -1) — only PRs age out.
+#   - Drafts never stale (exempt-draft-pr). Labels that pause the clock:
+#     wip / blocked / security / dependencies (dependabot self-manages; closing
+#     its PRs would fight its own rebase/recreate lifecycle).
+#   - delete-branch: false — a closed stale PR keeps its branch so salvage is
+#     always possible; the author deletes when ready.
+name: Stale PR sweep
+
+on:
+  schedule:
+    - cron: "17 4 * * *" # daily, off-peak UTC
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  contents: write # required even with delete-branch: false
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          days-before-issue-stale: -1
+          days-before-issue-close: -1
+          days-before-pr-stale: 45
+          days-before-pr-close: 14
+          stale-pr-label: stale
+          stale-pr-message: >-
+            This PR has been inactive for 45 days and will auto-close in 14
+            days unless it sees activity. If it's still relevant, comment or
+            push a commit to reset the timer.
+          close-pr-message: >-
+            Closed for inactivity. The branch is kept — reopen or rebase it
+            onto `development` if the work is still needed.
+          exempt-draft-pr: true
+          exempt-pr-labels: "wip,blocked,security,dependencies"
+          delete-branch: false
