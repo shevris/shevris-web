@@ -1,0 +1,51 @@
+# Dependency vulnerability gate — free replacement for dependency-review-action
+# (which requires GHAS on private repos and fails permanently without it).
+#
+# Google's osv-scanner (Apache-2.0) queries the OSV.dev database across npm
+# advisories. Two coverage modes:
+#   - PR + push: scans the lockfile at head — fails if the tree carries any
+#     known vuln, so vulnerable deps can't merge quietly
+#   - Nightly + manual: the same scan on the default branch catches NEW
+#     advisories published against deps we already ship (the gap a
+#     pre-merge-only gate can't cover — same job Dependabot alerts do)
+#
+# Binary is version-pinned + SHA-256 verified, same discipline as the
+# gitleaks gate.
+name: Dependency Vuln Scan
+
+on:
+  pull_request:
+    branches: [development, main]
+  push:
+    branches: [development, main]
+  schedule:
+    - cron: "41 3 * * *" # nightly advisory check, off-peak
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  osv-scan:
+    name: osv-scan
+    runs-on: ubuntu-latest
+    env:
+      OSV_VERSION: "2.7.0"
+      # SHA-256 of osv-scanner_linux_amd64 from the release's
+      # osv-scanner_SHA256SUMS — pinned like every other supply-chain binary.
+      OSV_SHA256: "160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install pinned osv-scanner (checksum-verified)
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 -o osv-scanner \
+            "https://github.com/google/osv-scanner/releases/download/v${OSV_VERSION}/osv-scanner_linux_amd64"
+          echo "${OSV_SHA256} osv-scanner" | sha256sum --check -
+          sudo install -m 0755 osv-scanner /usr/local/bin/osv-scanner
+          rm -f osv-scanner
+          test "$(osv-scanner --version | awk '{print $NF}')" = "${OSV_VERSION}"
+
+      - name: Scan lockfile for known vulnerabilities
+        run: osv-scanner scan lockfile package-lock.json
