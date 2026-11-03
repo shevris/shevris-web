@@ -3,8 +3,9 @@
 #
 # Google's osv-scanner (Apache-2.0) queries the OSV.dev database across npm
 # advisories. Two coverage modes:
-#   - PR + push: scans the lockfile at head — fails if the tree carries any
-#     known vuln, so vulnerable deps can't merge quietly
+#   - PR + push: scans the lockfile at head — fails on High/Critical findings
+#     (CVSS >= 7.0), same severity threshold as `npm audit --audit-level=high`;
+#     Medium/Low findings are reported but don't block
 #   - Nightly + manual: the same scan on the default branch catches NEW
 #     advisories published against deps we already ship (the gap a
 #     pre-merge-only gate can't cover — same job Dependabot alerts do)
@@ -45,7 +46,48 @@ jobs:
           echo "${OSV_SHA256} osv-scanner" | sha256sum --check -
           sudo install -m 0755 osv-scanner /usr/local/bin/osv-scanner
           rm -f osv-scanner
-          osv-scanner --version | grep -q "${OSV_VERSION}"
+          # No -q: grep must drain the pipe or pipefail sees osv-scanner's
+          # SIGPIPE (exit 141) as a step failure.
+          osv-scanner --version | grep "${OSV_VERSION}"
 
       - name: Scan lockfile for known vulnerabilities
-        run: osv-scanner scan lockfile package-lock.json
+        run: |
+          set +e
+          osv-scanner scan lockfile package-lock.json --format json > osv-results.json
+          code=$?
+          set -e
+          echo "osv-scanner exit code: $code (0 = clean, 1 = findings present)"
+          # Codes >1 mean a scanner/config error — fail loudly rather than
+          # letting the gate step parse an empty file.
+          [ "$code" -le 1 ]
+
+      - name: Report findings + gate on High/Critical (CVSS >= 7.0)
+        # Severity parity with `npm audit --audit-level=high`: Medium/Low are
+        # listed for visibility but don't block. Findings with no CVSS score
+        # count as blocking — unknown severity always deserves human review.
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          let report;
+          try {
+            report = JSON.parse(fs.readFileSync('osv-results.json', 'utf8'));
+          } catch {
+            console.error('osv-results.json missing or unparseable — treating as scanner failure');
+            process.exit(1);
+          }
+          const findings = [];
+          for (const r of report.results ?? [])
+            for (const p of r.packages ?? [])
+              for (const g of p.groups ?? [])
+                findings.push({
+                  pkg: `${p.package.name}@${p.package.version}`,
+                  ids: g.ids.join(', '),
+                  sev: parseFloat(g.max_severity),
+                });
+          findings.sort((a, b) => (b.sev || 0) - (a.sev || 0));
+          for (const f of findings)
+            console.log(`${Number.isNaN(f.sev) ? '  ?' : f.sev.toFixed(1)}  ${f.pkg}  ${f.ids}`);
+          const blocking = findings.filter(f => Number.isNaN(f.sev) || f.sev >= 7.0);
+          console.log(`\n${findings.length} finding(s); ${blocking.length} High/Critical — gate fails at CVSS >= 7.0`);
+          if (blocking.length) process.exit(1);
+          NODE
