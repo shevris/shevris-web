@@ -53,7 +53,7 @@ jobs:
       - name: Scan lockfile for known vulnerabilities
         run: |
           set +e
-          osv-scanner scan lockfile package-lock.json --format json > osv-results.json
+          osv-scanner scan -L package-lock.json --format json > osv-results.json
           code=$?
           set -e
           echo "osv-scanner exit code: $code (0 = clean, 1 = findings present)"
