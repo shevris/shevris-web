@@ -1,0 +1,152 @@
+# CI Event Watchdog — self-heals dropped webhook events.
+#
+# During GitHub incidents, push/pull_request webhook deliveries can be
+# dropped and are NOT replayed on recovery. A required check whose event
+# never fired stays "Expected — Waiting for status" forever and silently
+# blocks the PR (observed during the 2026-11-04 minor outage: Infra #106,
+# and BE #164 which sat stalled for days).
+#
+# A GITHUB_TOKEN cannot re-fire a pull_request event (token pushes don't
+# trigger it; token close/reopen creates approval-gated runs) — but it CAN
+# create workflow_dispatch runs, and required checks are matched by name on
+# the head SHA regardless of which event produced the run. So this job
+# periodically finds open PRs whose head SHA is missing required checks and
+# re-dispatches the owning workflow on the PR branch.
+#
+# Self-limiting by design: healed checks complete, so later runs see nothing
+# missing; a genuinely failing check reports 'failure' (completed) and is
+# left alone.
+name: CI Event Watchdog
+
+on:
+  schedule:
+    # Every ~20 min, offset from the top-of-hour runner rush GitHub warns
+    # about. NOTE: schedules only fire from the DEFAULT branch (main) —
+    # this file becomes active after the next development → main release.
+    - cron: "9,29,49 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write # heal comments on PRs
+  checks: read
+  actions: write # workflow_dispatch
+
+jobs:
+  heal-stalled-prs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Detect dropped CI events + re-dispatch missing checks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          node <<'NODE'
+          const { execSync } = require('child_process');
+          const repo = process.env.GH_REPO;
+          const api = (p) =>
+            JSON.parse(execSync(`gh api "${p}"`, { encoding: 'utf8' }));
+          const apiRaw = (p) =>
+            execSync(`gh api "${p}"`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
+
+          // Required check name -> dispatch-SAFE workflow file that produces
+          // it. Scan/test workflows only — a dispatch must never deploy.
+          // Update when required checks change (branch protection is the
+          // source of truth; this map only says HOW to re-run one).
+          const CHECK_TO_WORKFLOW = {
+            verify: 'ci.yml',
+            gitleaks: 'secret-scan.yml',
+            'osv-scan': 'osv-scan.yml',
+            zizmor: 'zizmor.yml',
+            // 'check' (semantic-pr.yml): intentionally unmapped — its job
+            // evaluates github.event.pull_request.title which doesn't
+            // exist on workflow_dispatch; healing needs a manual nudge.
+          };
+          const GRACE_MIN = 15; // let fresh pushes schedule normally first
+          const MARKER = 'CI watchdog:';
+
+          const prs = api(`repos/${repo}/pulls?state=open&per_page=100`);
+          if (!prs.length) {
+            console.log('no open PRs — nothing to check');
+            return;
+          }
+
+          for (const pr of prs) {
+            if (pr.head.repo.full_name !== repo) continue; // forks: can't dispatch
+            const ageMin = (Date.now() - new Date(pr.updated_at)) / 60000;
+            if (ageMin < GRACE_MIN) continue;
+
+            let required;
+            try {
+              const prot = api(
+                `repos/${repo}/branches/${pr.base.ref}/protection/required_status_checks`
+              );
+              required = (prot.checks ?? []).map((c) => c.context);
+            } catch {
+              continue; // base branch has no required checks
+            }
+            if (!required.length) continue;
+
+            const { check_runs = [] } = api(
+              `repos/${repo}/commits/${pr.head.sha}/check-runs?per_page=100`
+            );
+            const present = new Set(check_runs.map((r) => r.name));
+            const missing = required.filter((c) => !present.has(c));
+            if (!missing.length) continue;
+
+            console.log(
+              `PR #${pr.number} (${pr.head.ref} @ ${pr.head.sha.slice(0, 7)}): ` +
+                `missing required checks: ${missing.join(', ')}`
+            );
+
+            // Don't re-heal a head we've already commented on — a missing
+            // check after a dispatched run needs human eyes, not a loop.
+            const comments = api(
+              `repos/${repo}/issues/${pr.number}/comments?per_page=50`
+            );
+            const alreadyHealed = comments.some(
+              (c) => c.body?.startsWith(MARKER) && c.body.includes(pr.head.sha.slice(0, 7))
+            );
+            if (alreadyHealed) {
+              console.log(`  already healed this head — skipping`);
+              continue;
+            }
+
+            const healed = [];
+            const manual = [];
+            for (const check of missing) {
+              const file = CHECK_TO_WORKFLOW[check];
+              if (!file) {
+                manual.push(check);
+                continue;
+              }
+              // A required check added after the branch was cut can't be
+              // produced by a file the branch doesn't have.
+              let exists = true;
+              try {
+                apiRaw(`repos/${repo}/contents/.github/workflows/${file}?ref=${pr.head.ref}`);
+              } catch {
+                exists = false;
+              }
+              if (!exists) {
+                manual.push(`${check} (workflow not on branch)`);
+                continue;
+              }
+              console.log(`  dispatch ${file} on ${pr.head.ref}`);
+              execSync(
+                `gh api "repos/${repo}/actions/workflows/${file}/dispatches" -X POST -f "ref=${pr.head.ref}"`
+              );
+              healed.push(check);
+            }
+
+            const manualNote = manual.length
+              ? `\n\nNeeds manual nudge for: ${manual.join(', ')} — ` +
+                'either click **Update branch**, or `git commit --allow-empty -m "ci: re-trigger" && git push`.'
+              : '';
+            execSync(
+              `gh api "repos/${repo}/issues/${pr.number}/comments" -X POST -f "body=${MARKER} required check(s) missing on head ${pr.head.sha.slice(0, 7)} — likely a dropped webhook during a GitHub incident.${healed.length ? ` Re-dispatched: ${healed.join(', ')}.` : ''}${manualNote}"`
+            );
+          }
+          NODE

@@ -3,6 +3,7 @@ name: CI
 on:
   pull_request:
     branches: [development, main]
+  workflow_dispatch: # lets the CI watchdog re-fire 'verify' after dropped webhook events
 
 jobs:
   verify:
