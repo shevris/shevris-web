@@ -23,3 +23,9 @@
 - **Accepted risk**: `braces`/`micromatch`/`fast-glob` inside `eslint-config-next` are flagged by GHSA-vfj7-8cjw-p6xm (`braces <=3.0.3`, dev-only DoS via crafted globs). No patched release exists yet; `overrides` in `package.json` pin `^` ranges so the fix auto-lands. Re-check on the next `npm audit`.
 - **Dependabot ignores**: `eslint >=10` (eslint-config-next plugin chain caps at 9) and `typescript >=6` (typescript-eslint doesn't support it). Periodically retry — remove the ignore when the ecosystem catches up.
 - `unrs-resolver`'s postinstall stays blocked (npm default-deny); ESLint works without it. Only approve it in `allowScripts` if lint ever fails for a missing native binary.
+
+## CI reliability tooling
+
+- `zizmor` (`.github/workflows/zizmor.yml`) statically audits every workflow change on PRs — unpinned actions, excessive permissions, template injection, credential persistence. It is a required check on `development`; fix findings properly or document a `zizmor: ignore[rule]` suppression with justification.
+- `ci-watchdog.yml` runs ~every 20 min (cron activates when it reaches `main`; `workflow_dispatch` works immediately) and re-dispatches required checks missing on stalled PR heads — heals dropped webhook events during GitHub outages. `check` (semantic-pr) is intentionally unmapped — it needs the PR title context; a missing one gets a comment with the manual nudge.
+- Required checks on `development`: `verify`, `check`, `gitleaks`, `osv-scan`, `zizmor`.
