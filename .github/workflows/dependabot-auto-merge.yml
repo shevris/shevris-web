@@ -26,6 +26,9 @@
 name: Dependabot Auto-Merge
 
 on:
+  # zizmor: ignore[dangerous-triggers] required for a write-capable token on
+  # dependabot PRs; jobs are gated on user.login == 'dependabot[bot]' and
+  # never check out or execute PR code.
   pull_request_target:
     branches:
       - development
@@ -33,14 +36,16 @@ on:
       - opened
       - synchronize
       - reopened
+  # zizmor: ignore[dangerous-triggers] post-CI fan-in for the same gated
+  # dependabot merge — no untrusted code executes.
   workflow_run:
     workflows: ["CI"]
     types: [completed]
 
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write # label management uses the issues API
+  contents: write # zizmor: ignore[excessive-permissions] merge automation needs it
+  pull-requests: write # zizmor: ignore[excessive-permissions] merges dependabot PRs
+  issues: write # zizmor: ignore[excessive-permissions] label management uses the issues API
   checks: read # gh pr checks queries statusCheckRollup — denied without this
   statuses: read # commit status contexts for the same gate
 
