@@ -149,4 +149,30 @@ jobs:
               `gh api "repos/${repo}/issues/${pr.number}/comments" -X POST -f "body=${MARKER} required check(s) missing on head ${pr.head.sha.slice(0, 7)} — likely a dropped webhook during a GitHub incident.${healed.length ? ` Re-dispatched: ${healed.join(', ')}.` : ''}${manualNote}"`
             );
           }
+
+          // Dependabot conflict heal: a bot PR left CONFLICTING stalls
+          // forever — dependabot doesn't rebase on its own once another
+          // merge moves the lockfile. Posting '@dependabot rebase'
+          // regenerates the branch; CI re-runs and merge flow resumes.
+          for (const pr of prs) {
+            if (pr.user?.login !== 'dependabot[bot]') continue;
+            const full = api(`repos/${repo}/pulls/${pr.number}`);
+            if (!['conflicting', 'dirty'].includes(full.mergeable_state)) continue;
+            const comments = api(
+              `repos/${repo}/issues/${pr.number}/comments?per_page=50`
+            );
+            const already = comments.some(
+              (c) =>
+                c.body?.startsWith(MARKER) &&
+                c.body.includes('rebase requested') &&
+                c.body.includes(pr.head.sha.slice(0, 7))
+            );
+            if (already) continue;
+            console.log(
+              `PR #${pr.number}: conflicting dependabot PR — requesting rebase`
+            );
+            execSync(
+              `gh api "repos/${repo}/issues/${pr.number}/comments" -X POST -f "body=${MARKER} dependabot PR conflicting on head ${pr.head.sha.slice(0, 7)} — rebase requested to auto-resolve. @dependabot rebase"`
+            );
+          }
           NODE
