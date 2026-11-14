@@ -167,7 +167,24 @@ jobs:
                 c.body.includes('rebase requested') &&
                 c.body.includes(pr.head.sha.slice(0, 7))
             );
-            if (already) continue;
+            if (already) {
+              // Rebase didn't resolve it — e.g. a human pushed to the bot
+              // branch (dependabot refuses `rebase` then; only `recreate`
+              // works, and it discards the human edits). Escalate once.
+              const escalated = comments.some(
+                (c) =>
+                  c.body?.startsWith(MARKER) &&
+                  c.body.includes('recreate requested') &&
+                  c.body.includes(pr.head.sha.slice(0, 7))
+              );
+              if (!escalated) {
+                console.log(`PR #${pr.number}: still conflicting after rebase — escalating to recreate`);
+                execSync(
+                  `gh api "repos/${repo}/issues/${pr.number}/comments" -X POST -f "body=${MARKER} rebase did not resolve head ${pr.head.sha.slice(0, 7)} — recreate requested. @dependabot recreate"`
+                );
+              }
+              continue;
+            }
             console.log(
               `PR #${pr.number}: conflicting dependabot PR — requesting rebase`
             );
