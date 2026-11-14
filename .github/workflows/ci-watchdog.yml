@@ -27,7 +27,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write # keepalive commit resets GitHub's 60-day schedule dormancy
   pull-requests: read
   issues: write # heal comments on PRs
   checks: read
@@ -182,6 +182,21 @@ jobs:
                 execSync(
                   `gh api "repos/${repo}/issues/${pr.number}/comments" -X POST -f "body=${MARKER} rebase did not resolve head ${pr.head.sha.slice(0, 7)} — recreate requested. @dependabot recreate"`
                 );
+              } else {
+                // recreate was also ignored → bot unresponsive; alert a
+                // human once per head instead of silently giving up.
+                const alerted = comments.some(
+                  (c) =>
+                    c.body?.startsWith(MARKER) &&
+                    c.body.includes('manual intervention') &&
+                    c.body.includes(pr.head.sha.slice(0, 7))
+                );
+                if (!alerted) {
+                  console.log(`PR #${pr.number}: recreate also ignored — flagging manual intervention`);
+                  execSync(
+                    `gh api "repos/${repo}/issues/${pr.number}/comments" -X POST -f "body=${MARKER} dependabot unresponsive to rebase and recreate on head ${pr.head.sha.slice(0, 7)} — manual intervention needed."`
+                  );
+                }
               }
               continue;
             }
@@ -191,5 +206,34 @@ jobs:
             execSync(
               `gh api "repos/${repo}/issues/${pr.number}/comments" -X POST -f "body=${MARKER} dependabot PR conflicting on head ${pr.head.sha.slice(0, 7)} — rebase requested to auto-resolve. @dependabot rebase"`
             );
+          }
+
+          // 60-day dormancy guard: GitHub auto-disables scheduled workflows
+          // after 60 days of repo inactivity — this watchdog would go dark
+          // silently during a quiet stretch. If the repo has been inactive
+          // ~45 days, push an empty commit on ci-keepalive to reset the
+          // timer. A dedicated branch so no workflow triggers on it.
+          const { pushed_at } = api(`repos/${repo}`);
+          const quietDays = (Date.now() - new Date(pushed_at)) / 86400000;
+          if (quietDays > 45) {
+            console.log(`repo quiet ${quietDays.toFixed(0)}d — pushing keepalive commit`);
+            const mainSha = api(`repos/${repo}/git/ref/heads/main`).object.sha;
+            const treeSha = api(`repos/${repo}/git/commits/${mainSha}`).tree.sha;
+            const c = JSON.parse(
+              execSync(
+                `gh api "repos/${repo}/git/commits" -X POST -f "message=ci: keepalive (reset 60-day schedule dormancy)" -f "tree=${treeSha}" -f "parents[]=${mainSha}"`,
+                { encoding: 'utf8' }
+              )
+            );
+            try {
+              execSync(
+                `gh api "repos/${repo}/git/refs" -X POST -f "ref=refs/heads/ci-keepalive" -f "sha=${c.sha}"`
+              );
+            } catch {
+              execSync(
+                `gh api "repos/${repo}/git/refs/heads/ci-keepalive" -X PATCH -f "sha=${c.sha}"`
+              );
+            }
+            console.log('keepalive pushed to ci-keepalive');
           }
           NODE
