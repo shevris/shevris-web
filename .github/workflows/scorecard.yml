@@ -1,0 +1,43 @@
+# OpenSSF Scorecard — weekly security-posture audit.
+#
+# The scorecard ACTION needs GHAS on private repos; the CLI does not. Runs the
+# pinned checksum-verified binary weekly against this repo and prints the
+# check-by-check scorecard into the job summary/log — posture drift becomes
+# visible instead of silent.
+#
+# GITHUB_TOKEN is passed so the scanner can read repo metadata; results are
+# informational only (Scorecard reports a score, it never gates).
+name: Scorecard Audit
+
+on:
+  schedule:
+    - cron: "11 6 * * 1" # weekly, off-peak
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scorecard:
+    name: scorecard
+    runs-on: ubuntu-latest
+    env:
+      SCORECARD_VERSION: "5.6.0"
+      # SHA-256 of scorecard_5.6.0_linux_amd64.tar.gz from the release's
+      # scorecard_checksums.txt.
+      SCORECARD_SHA256: "19bde07129450cb65a95c6e3b9f34e034341579e6f0e241546ec3ae6efb2dd9a"
+      GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Install pinned scorecard (checksum-verified)
+        run: |
+          set -euo pipefail
+          t="scorecard_${SCORECARD_VERSION}_linux_amd64.tar.gz"
+          curl -fsSL --retry 3 -o "$t" \
+            "https://github.com/ossf/scorecard/releases/download/v${SCORECARD_VERSION}/${t}"
+          echo "${SCORECARD_SHA256} ${t}" | sha256sum --check -
+          tar -xzf "$t" scorecard
+          sudo install -m 0755 scorecard /usr/local/bin/scorecard
+          rm -f "$t" scorecard
+
+      - name: Run scorecard
+        run: scorecard --repo=github.com/${{ github.repository }} --format=default --show-details
