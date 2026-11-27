@@ -178,8 +178,8 @@ export default function UrduPage() {
                 لانچ والے دن سب سے پہلے آگاہ رہیں۔
               </h2>
               <p className="text-muted mx-auto mt-4 max-w-[480px] text-[15.5px] leading-relaxed">
-                ویٹ لسٹ ممبران کو پہلی رسائی ملتی ہے اور ہر سنگِ میل کی خبر سب
-                سے پہلے پہنچتی ہے۔
+                ویٹ لسٹ ممبران کو پہلی رسائی ملتی ہے اور ہر سنگِ میل کی خبر سب سے
+                پہلے پہنچتی ہے۔
               </p>
               <div className="mt-8 flex justify-center">
                 <a
